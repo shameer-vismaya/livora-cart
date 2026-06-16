@@ -1,0 +1,81 @@
+{
+  "realm": "livora",
+  "enabled": true,
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "accessTokenLifespan": 900,
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 604800,
+  "roles": {
+    "realm": [
+      { "name": "customer", "description": "Marketplace customer" },
+      { "name": "store_owner", "description": "Store owner" },
+      { "name": "store_staff", "description": "Store staff (cashier/inventory/manager)" },
+      { "name": "admin", "description": "Platform administrator" },
+      { "name": "driver", "description": "Delivery driver" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "livora-web",
+      "name": "Livora Customer Web/App (public)",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "redirectUris": ["*"],
+      "webOrigins": ["*"],
+      "protocol": "openid-connect"
+    },
+    {
+      "clientId": "livora-store-portal",
+      "name": "Livora Store Owner Portal (public)",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "redirectUris": ["*"],
+      "webOrigins": ["*"],
+      "protocol": "openid-connect"
+    },
+    {
+      "clientId": "livora-admin-portal",
+      "name": "Livora Admin Portal (public)",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "redirectUris": ["*"],
+      "webOrigins": ["*"],
+      "protocol": "openid-connect"
+    }
+  ],
+  "users": [
+    {
+      "username": "testcustomer",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "testcustomer@livora.local",
+      "firstName": "Test",
+      "lastName": "Customer",
+      "credentials": [
+        { "type": "password", "value": "test_pw", "temporary": false }
+      ],
+      "realmRoles": ["customer"]
+    },
+    {
+      "username": "testadmin",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "testadmin@livora.local",
+      "firstName": "Test",
+      "lastName": "Admin",
+      "credentials": [
+        { "type": "password", "value": "admin_pw", "temporary": false }
+      ],
+      "realmRoles": ["admin"]
+    }
+  ]
+}

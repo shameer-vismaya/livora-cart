@@ -1,0 +1,19 @@
+# Dev-only overrides, auto-merged by `docker compose` (not used in prod —
+# prod uses docker-compose.prod.yml explicitly). Keep developer conveniences here.
+name: livora
+
+services:
+  postgres:
+    # Expose to host tools (psql, GUI clients) in dev.
+    ports:
+      - '${POSTGRES_PORT:-5432}:5432'
+
+  kafka:
+    environment:
+      # Verbose-ish logging is fine locally.
+      KAFKA_LOG4J_ROOT_LOGLEVEL: WARN
+
+  keycloak:
+    # start-dev already set in base; nothing extra needed but kept for clarity.
+    environment:
+      KC_LOG_LEVEL: INFO
