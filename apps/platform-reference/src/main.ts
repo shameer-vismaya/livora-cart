@@ -11,6 +11,12 @@ async function bootstrap(): Promise<void> {
   const env = loadAppEnv();
   collectDefaultMetrics({ prefix: 'livora_' });
 
+  // Resilience: a transient async error (e.g. a retriable KafkaJS metadata
+  // error) should be logged, not crash the whole service.
+  process.on('unhandledRejection', (reason) => {
+    new Logger('Process').error(`Unhandled rejection: ${String(reason)}`);
+  });
+
   const app = await NestFactory.create(AppModule);
   app.enableShutdownHooks();
 

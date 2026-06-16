@@ -22,8 +22,9 @@ FROM node:20-alpine AS runtime
 ENV NODE_ENV=production
 WORKDIR /app
 
-# Prisma's query engine needs openssl on Alpine; libc6-compat for glibc shims.
-RUN apk add --no-cache openssl libc6-compat
+# Prisma's query engine needs openssl on Alpine; libc6-compat for glibc shims;
+# curl for the container healthcheck.
+RUN apk add --no-cache openssl libc6-compat curl
 
 # Non-root user.
 RUN addgroup -S livora && adduser -S livora -G livora

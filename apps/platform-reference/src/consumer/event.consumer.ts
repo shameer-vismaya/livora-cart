@@ -26,6 +26,7 @@ export class EventConsumer implements OnModuleInit, OnModuleDestroy {
   });
   private readonly consumer: Consumer = this.kafka.consumer({
     groupId: this.env.KAFKA_CONSUMER_GROUP,
+    allowAutoTopicCreation: true,
   });
   private readonly producer: Producer = this.kafka.producer();
   private static readonly MAX_ATTEMPTS = 3;
@@ -33,6 +34,24 @@ export class EventConsumer implements OnModuleInit, OnModuleDestroy {
   constructor(private readonly prisma: PrismaService) {}
 
   async onModuleInit(): Promise<void> {
+    // Pre-create topics so a fresh deploy doesn't crash on UNKNOWN_TOPIC_OR_PARTITION
+    // before the first event/connector creates them. createTopics is idempotent.
+    const admin = this.kafka.admin();
+    try {
+      await admin.connect();
+      await admin.createTopics({
+        waitForLeaders: true,
+        topics: [
+          { topic: this.env.DEMO_TOPIC, numPartitions: 1 },
+          { topic: this.env.DEMO_DLQ_TOPIC, numPartitions: 1 },
+        ],
+      });
+    } catch (err) {
+      this.logger.warn(`topic pre-create skipped: ${(err as Error).message}`);
+    } finally {
+      await admin.disconnect().catch(() => undefined);
+    }
+
     await this.producer.connect();
     await this.consumer.connect();
     await this.consumer.subscribe({
