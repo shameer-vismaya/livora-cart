@@ -3,9 +3,11 @@
 # (docker-compose.override.yml is dev-only and NOT loaded in this combination).
 #
 # Philosophy: services talk over the `livora-net` Docker network by container
-# name, so infra ports are NOT published to the host (avoids port conflicts on
-# shared hosts). Only the Kong proxy is public; a few UIs bind to 127.0.0.1 for
-# on-host debugging / token fetch (reach them via SSH tunnel).
+# name, so infra ports are NOT published to the host (avoids ALL host port
+# conflicts on shared machines). The Kong proxy is the ONLY published port.
+#   - Reference service:  http://<host>:8000/reference/...
+#   - Keycloak realms:    http://<host>:8000/realms/...   (routed via Kong)
+#   - UIs (Grafana etc.): SSH-tunnel to the container, or `docker compose port`.
 # Kubernetes/DevSecOps is a later phase.
 name: livora
 
@@ -36,30 +38,25 @@ services:
 
   opensearch-dashboards:
     restart: always
-    ports:
-      - '127.0.0.1:${OPENSEARCH_DASHBOARDS_PORT:-5601}:5601'
+    ports: !reset []
 
   keycloak:
     restart: always
-    # Bound to localhost for on-host token fetch; front behind a reverse proxy in real prod.
-    ports:
-      - '127.0.0.1:${KEYCLOAK_PORT:-8080}:8080'
+    # Reached via Kong at /realms/* (token, certs, discovery). Not published.
+    ports: !reset []
 
   kong:
     restart: always
-    # Proxy is the only public entrypoint; admin stays on localhost.
+    # The ONLY public entrypoint. Override KONG_PROXY_PORT if 8000 is taken.
     ports:
       - '${KONG_PROXY_PORT:-8000}:8000'
-      - '127.0.0.1:${KONG_ADMIN_PORT:-8001}:8001'
 
   minio:
     restart: always
-    ports:
-      - '127.0.0.1:${MINIO_CONSOLE_PORT:-9001}:9001'
+    ports: !reset []
 
   platform-reference:
     restart: always
-    # Reached through Kong (/reference); not published directly.
     ports: !reset []
 
   otel-collector:
@@ -68,8 +65,7 @@ services:
 
   prometheus:
     restart: always
-    ports:
-      - '127.0.0.1:${PROMETHEUS_PORT:-9090}:9090'
+    ports: !reset []
 
   tempo:
     restart: always
@@ -77,5 +73,4 @@ services:
 
   grafana:
     restart: always
-    ports:
-      - '127.0.0.1:${GRAFANA_PORT:-3001}:3000'
+    ports: !reset []

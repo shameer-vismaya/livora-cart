@@ -1,8 +1,9 @@
 # Kong declarative (DB-less) config. Loaded at boot via KONG_DECLARATIVE_CONFIG.
-# Kong owns edge concerns: routing, rate-limiting, correlation ids.
-# JWT enforcement is done by the service's KeycloakJwtGuard (full JWKS verify),
-# so there is no public-key to inject here at deploy time. A future hardening
-# step (Cloud/DevSecOps phase) can add the openid-connect plugin at the edge.
+# Kong owns edge concerns: routing, rate-limiting, correlation ids. It is the
+# only host-published service in prod, so it also fronts Keycloak's public
+# realm endpoints (token, certs, discovery) at /realms/*.
+# JWT enforcement is done by the service's KeycloakJwtGuard (full JWKS verify);
+# a future hardening step can add the openid-connect plugin at the edge.
 _format_version: '3.0'
 _transform: true
 
@@ -14,6 +15,15 @@ services:
         paths:
           - /reference
         strip_path: true
+
+  - name: keycloak-realms
+    url: http://keycloak:8080
+    routes:
+      - name: keycloak-realms
+        # Exposes only /realms/* (token, certs, discovery) — NOT the admin console.
+        paths:
+          - /realms
+        strip_path: false
 
 plugins:
   - name: rate-limiting
