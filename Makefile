@@ -63,3 +63,7 @@ health: ## Run the stack health check
 .PHONY: smoke
 smoke: ## Post-deploy smoke test (Phase 1 spine)
 	@bash deploy/smoke-test.sh
+
+.PHONY: smoke-identity
+smoke-identity: ## Phase 2 smoke test (register/login/profile/RBAC)
+	@bash deploy/smoke-test-identity.sh

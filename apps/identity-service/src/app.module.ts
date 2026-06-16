@@ -13,6 +13,7 @@ import { Msg91Client } from './otp/msg91.client';
 import { OtpRedisProvider } from './otp/redis.provider';
 import { TokenService } from './token/token.service';
 import { GuestController } from './guest/guest.controller';
+import { AdminController } from './admin/admin.controller';
 
 @Module({
   imports: [AuthModule],
@@ -22,6 +23,7 @@ import { GuestController } from './guest/guest.controller';
     RegistrationController,
     OtpController,
     GuestController,
+    AdminController,
   ],
   providers: [
     PrismaService,
