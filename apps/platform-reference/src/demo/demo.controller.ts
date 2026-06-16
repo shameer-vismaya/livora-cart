@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { assertIdempotencyKey, makeDomainEvent } from '@livora/contracts';
-import { KeycloakJwtGuard } from '../auth/keycloak-jwt.guard';
+import { KeycloakJwtGuard } from '@livora/auth';
 import { PrismaService } from '../prisma/prisma.service';
 import { OutboxService } from '../outbox/outbox.service';
 

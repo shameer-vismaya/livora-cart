@@ -35,6 +35,7 @@ COPY --from=builder /repo/node_modules ./node_modules
 COPY --from=builder /repo/dist/libs/contracts ./node_modules/@livora/contracts
 COPY --from=builder /repo/dist/libs/config ./node_modules/@livora/config
 COPY --from=builder /repo/dist/libs/observability ./node_modules/@livora/observability
+COPY --from=builder /repo/dist/libs/auth ./node_modules/@livora/auth
 COPY --from=builder /repo/dist/apps/platform-reference ./
 COPY --from=builder /repo/apps/platform-reference/prisma ./prisma
 

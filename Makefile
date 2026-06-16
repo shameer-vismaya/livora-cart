@@ -59,3 +59,7 @@ deploy-remote: ## Provision+deploy to $$DEPLOY_HOST over SSH
 .PHONY: health
 health: ## Run the stack health check
 	@bash deploy/healthcheck.sh
+
+.PHONY: smoke
+smoke: ## Post-deploy smoke test (Phase 1 spine)
+	@bash deploy/smoke-test.sh
