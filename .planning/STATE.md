@@ -4,9 +4,12 @@
 
 ## Snapshot
 - **Project:** Livora Cart — multi-vendor commerce marketplace (India)
-- **Phase:** Initialization complete → **ready for Phase 1 (Platform Foundation)**
+- **Phase:** **Phase 1 planned** (`.planning/phases/01-foundation/`) → ready to execute
 - **Mode:** YOLO · **Depth:** Comprehensive · **Execution:** Parallel
 - **Last updated:** 2026-06-16
+
+## Scope Adjustments (owner directives)
+- **2026-06-16:** Phase 1 re-scoped — **drop DevSecOps for now**; deliver a **Docker Compose stack + Ubuntu Docker deploy script** instead. Kubernetes/EKS, Helm, Argo CD/GitOps, Terraform, and CI/CD security-scan gates **deferred to a later "Cloud & DevSecOps" phase** (tracked in ROADMAP Phase 1 note).
 
 ## Key Decisions (locked)
 - Frontend: **Flutter** (Android, iOS-ready, Web, portals) — Riverpod + go_router.

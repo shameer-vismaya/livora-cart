@@ -15,15 +15,19 @@ P1 Infra → P2 Identity → P3 Store+Catalog → P4 Search → P5 CHECKOUT SPIN
 
 ---
 
-## Phase 1 — Platform Foundation & DevSecOps Chassis
-**Goal:** A deployable, observable, secure skeleton other phases plug into.
-**Scope:** Nx monorepo + shared libs (`contracts`, `auth`, `observability`); Docker; EKS + Helm + Argo CD; Terraform for AWS ap-south-1 (VPC, EKS, MSK, Aurora, OpenSearch, ElastiCache, S3); Kong gateway; Keycloak deployed; Kafka + Schema Registry; OpenTelemetry→Prometheus/Grafana/Tempo/Loki; CI/CD with SAST/dep/container/IaC/DAST gates; outbox+CDC (Debezium) reference pattern; one "hello" service end-to-end through gateway with tracing.
-**Requirements:** NFR-PERF-03, NFR-AVL-04, NFR-OBS-*, NFR-DEV-*, NFR-SEC-04, NFR-MNT-01/02.
-**Parallel:** Infra (Terraform) ∥ monorepo/CI scaffolding ∥ observability stack.
+## Phase 1 — Platform Foundation & Docker Deploy Chassis  *(re-scoped 2026-06-16)*
+**Goal:** A deployable, observable skeleton other phases plug into — runnable locally and on a single Ubuntu host via Docker Compose.
+**Scope (re-scoped):** Nx monorepo + shared libs (`contracts`, `config`, `observability`); **Docker + Docker Compose** for the full local stack (Postgres, Redis, Kafka + Schema Registry, Debezium, OpenSearch, Keycloak, Kong, MinIO); reference NestJS service end-to-end through Kong with Keycloak JWT + outbox→Debezium→Kafka + idempotent consumer/DLQ; lightweight observability (OTel→Prometheus/Grafana/Tempo); **a script to provision an Ubuntu host with Docker and deploy the stack.**
+**Deferred to a later dedicated phase (was in this phase):** Kubernetes/EKS, Helm, Argo CD/GitOps, Terraform cloud provisioning, and CI/CD **DevSecOps** security-scan gates (SAST/DAST/dependency/container/IaC). *Per owner request 2026-06-16.*
+**Requirements:** NFR-PERF-03 (partial), NFR-OBS-01/02 (partial), NFR-MNT-01/02, NFR-CON-01 (outbox pattern).
+**Parallel:** monorepo scaffold ∥ Docker Compose infra → reference service ∥ observability → deploy script.
 **Success:**
-- [ ] A service deploys via Argo CD, routes through Kong, validates a Keycloak JWT, emits a trace visible end-to-end.
+- [ ] `docker compose up` brings the full stack healthy locally.
+- [ ] Reference service routes through Kong, validates a Keycloak JWT, emits an end-to-end trace.
 - [ ] Outbox→Debezium→Kafka demonstrated with idempotent consumer + DLQ.
-- [ ] CI pipeline blocks on a planted SAST/dependency finding.
+- [ ] `deploy.sh` provisions a clean Ubuntu host with Docker and brings the stack up to a passing health check.
+
+> **Later phase — Cloud & DevSecOps** (insert before/within Phase 11): migrate Compose → Kubernetes (EKS) + Helm + Argo CD, Terraform AWS ap-south-1, and CI/CD with SAST/dep/container/IaC/DAST gates. Tracked so it isn't lost.
 
 ## Phase 2 — Identity, Users & Access Control
 **Goal:** Every actor can authenticate and is correctly authorized.
