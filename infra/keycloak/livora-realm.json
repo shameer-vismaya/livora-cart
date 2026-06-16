@@ -63,6 +63,20 @@
       "protocol": "openid-connect"
     }
   ],
+  "identityProviders": [
+    {
+      "alias": "google",
+      "providerId": "google",
+      "enabled": true,
+      "trustEmail": true,
+      "storeToken": false,
+      "config": {
+        "clientId": "REPLACE_WITH_GOOGLE_CLIENT_ID",
+        "clientSecret": "REPLACE_WITH_GOOGLE_CLIENT_SECRET",
+        "syncMode": "IMPORT"
+      }
+    }
+  ],
   "users": [
     {
       "username": "service-account-identity-admin",

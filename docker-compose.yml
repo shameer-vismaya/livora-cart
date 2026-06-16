@@ -197,7 +197,9 @@ services:
     image: quay.io/keycloak/keycloak:24.0
     container_name: livora-keycloak
     restart: unless-stopped
-    command: ['start-dev', '--import-realm']
+    # token-exchange enables OTP->token issuance (identity-service); admin-fine-grained-authz
+    # is needed to grant the identity-admin client impersonation permission.
+    command: ['start-dev', '--import-realm', '--features=token-exchange,admin-fine-grained-authz']
     environment:
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin_dev_pw}
