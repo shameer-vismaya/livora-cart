@@ -20,8 +20,8 @@ key-files:
     - docker-compose.prod.yml
   modified: [infra/kong/kong.yml, .gitignore]
 completed: 2026-06-16
-status: tasks-1-2-complete; task-3-checkpoint-pending
-verified: static (bash -n + compose YAML); host run = open checkpoint
+status: complete
+verified: host (deployed to Ubuntu; full stack healthy; end-to-end proven 2026-06-16)
 ---
 
 # Phase 1 Plan 05: Ubuntu Docker Deploy Summary
@@ -49,9 +49,11 @@ The owner's headline ask: deploy the codebase to an Ubuntu host with Docker. Ide
 - Kong JWT simplification (above) — also slightly changes Plan 03's "Kong returns 401" expectation: the 401 is now returned by the service one hop later. E2E behavior (no token → 401) is unchanged.
 - `.gitignore` updated to track `deploy/.env.production.example`.
 
-## ⚠️ OPEN CHECKPOINT — Task 3 (human-verify on a real Ubuntu host)
-Not yet executed (no Docker locally). To complete:
-1. On an Ubuntu 22.04/24.04 host: `bash deploy/provision-ubuntu.sh`
-2. `cp deploy/.env.production.example deploy/.env.production` and fill secrets + `KAFKA_CLUSTER_ID`
-3. `ENV_FILE=deploy/.env.production bash deploy/deploy.sh`
-4. Confirm: `docker compose ... ps` all healthy; `curl <host>:8000/reference/health` → 200; authed `/reference/demo/echo` → 202; one trace in Grafana/Tempo; outbox→Kafka→consumer dedup→DLQ.
+## ✅ CHECKPOINT CLOSED — Task 3 (host-verified 2026-06-16)
+Deployed to an Ubuntu host via `deploy.sh`. All 15 services healthy. Proven end-to-end:
+- `curl :8000/reference/health` → `{"status":"ok","db":"up"}`
+- no token → 401; valid Keycloak token → `202 {eventId,...}`; replay same Idempotency-Key → identical response
+- outbox row → Debezium → Kafka `livora.demo.events` → consumer logged `applied event 4706949e… payload={"message":"end to end"}`
+
+### Runtime fixes applied during host bring-up (commits b2…→1d37aa9)
+Port-conflict avoidance (only Kong public), Keycloak via Kong `/realms`, Prisma engine on Alpine (openssl + keep node_modules + binaryTargets), workspace libs copied into runtime `node_modules`, `db push` as root, quoted env, container healthcheck curl, Kafka topic pre-create + unhandledRejection guard, optional JWT audience, Debezium publication FOR ALL TABLES + static topic + payload expansion + eventId-as-header (+ consumer reads header).

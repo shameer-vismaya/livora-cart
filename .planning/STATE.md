@@ -4,10 +4,11 @@
 
 ## Snapshot
 - **Project:** Livora Cart — multi-vendor commerce marketplace (India)
-- **Phase:** **Phase 1 EXECUTED** (build-only) — 5/5 plans authored & committed; 1 open host checkpoint
+- **Phase:** **Phase 1 COMPLETE & VERIFIED ON HOST** — 5/5 plans; checkpoint closed
 - **Mode:** YOLO · **Depth:** Comprehensive · **Execution:** Parallel
 - **Last updated:** 2026-06-16
 - **Progress:** Phase 1 of 11 · `█░░░░░░░░░░` ~9%
+- **Deploy:** GitHub `shameer-vismaya/livora-cart` → Ubuntu host via `deploy/deploy.sh` (Docker Compose). Verified working end-to-end 2026-06-16.
 
 ## Phase 1 Execution Status (build-now / verify-on-host)
 | Plan | Status | Local verification |
@@ -16,10 +17,20 @@
 | 02 docker-compose infra | ✅ authored | YAML/JSON validated |
 | 03 reference service | ✅ done | lint+test+build green (4 tests) |
 | 04 observability | ✅ done | OTel SDK compiles; configs valid |
-| 05 ubuntu deploy | ⚠️ tasks 1-2 done | bash -n + compose valid |
+| 05 ubuntu deploy | ✅ done + host-verified | full stack healthy; e2e proven |
 
-**OPEN CHECKPOINT:** Plan 05 Task 3 — run `deploy.sh` on a real Ubuntu host to verify the stack end-to-end (Docker not available locally). See `phases/01-foundation/01-foundation-05-SUMMARY.md`.
-**Build env note:** Node v22 + pnpm 9 present; **Docker NOT installed locally** → Plans 02–05 runtime-verified on the Ubuntu host per owner decision.
+**CHECKPOINT CLOSED (2026-06-16):** `deploy.sh` ran on the Ubuntu host; all 15 services healthy; end-to-end proven:
+Kong → Keycloak JWT → service → Postgres transactional outbox → Debezium CDC → Kafka → idempotent consumer (`applied event …`), with idempotency-key replay and OTel observability.
+
+### Host-run fixes folded into the repo (build-only → runtime gaps)
+- Prod compose publishes ONLY Kong proxy (8000); all infra internal (host port conflicts).
+- Keycloak realms routed via Kong `/realms/*`; UIs via SSH tunnel.
+- Dockerfile: keep node_modules (Prisma engine/CLI) + `apk add openssl libc6-compat curl`; copy built `@livora/*` libs into `node_modules` (runtime resolution).
+- `prisma db push` as root (no migration files this phase).
+- Quoted `OPENSEARCH_JAVA_OPTS`; container healthcheck uses curl (added).
+- Kafka topics pre-created in consumer; `unhandledRejection` guard.
+- JWT audience check optional (Keycloak tokens carry no `aud`).
+- Debezium: publication `FOR ALL TABLES`, static topic `livora.demo.events`, `expand.json.payload`, eventId emitted as Kafka header; consumer reads header.
 
 ## Scope Adjustments (owner directives)
 - **2026-06-16:** Phase 1 re-scoped — **drop DevSecOps for now**; deliver a **Docker Compose stack + Ubuntu Docker deploy script** instead. Kubernetes/EKS, Helm, Argo CD/GitOps, Terraform, and CI/CD security-scan gates **deferred to a later "Cloud & DevSecOps" phase** (tracked in ROADMAP Phase 1 note).
@@ -71,10 +82,10 @@
 Money correctness · oversell · SAGA partial failure · reconciliation · exchange integrity · cross-tenant leakage · Razorpay async + COD recon · GST compliance · campaign-spike resilience · scope discipline.
 
 ## Next Action
-1. **Verify Phase 1 on an Ubuntu host** (open checkpoint) — `bash deploy/provision-ubuntu.sh` then `bash deploy/deploy.sh`.
-2. Then `/gsd-plan-phase 2` (Identity, Users & Access Control).
+**`/gsd-plan-phase 2`** — Identity, Users & Access Control. Phase 2 services inherit the now-proven reference template (outbox/CDC/JWT/observability/Dockerfile/deploy).
 
 ## Changelog
 - 2026-06-16: Project initialized — context, research, requirements, roadmap, state created.
 - 2026-06-16: Phase 1 re-scoped (Docker/Ubuntu, defer K8s/DevSecOps) and planned (5 plans).
-- 2026-06-16: Phase 1 executed build-only — monorepo+libs, compose infra, reference service (outbox/Kafka/JWT), observability, ubuntu deploy scripts. All local checks green; host verification pending.
+- 2026-06-16: Phase 1 executed build-only — monorepo+libs, compose infra, reference service (outbox/Kafka/JWT), observability, ubuntu deploy scripts. All local checks green.
+- 2026-06-16: Phase 1 VERIFIED ON HOST — deployed to Ubuntu via Docker Compose; ~10 runtime/config fixes; full transactional spine proven end-to-end. Checkpoint closed. Phase 1 DONE.
