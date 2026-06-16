@@ -55,11 +55,13 @@ docker compose "${COMPOSE_FILES[@]}" --env-file "$ENV_FILE" up -d
 log "Waiting for Postgres + Connect to be ready..."
 sleep 10
 
-log "Running database migrations..."
+log "Syncing database schema (prisma db push)..."
+# Use the LOCAL prisma CLI (pinned v5 in the image) — never npx (which would
+# download the latest major). No migration files yet this phase, so db push.
 docker compose "${COMPOSE_FILES[@]}" --env-file "$ENV_FILE" \
   run --rm --no-deps --entrypoint "" platform-reference \
-  sh -lc 'npx prisma migrate deploy --schema prisma/schema.prisma' \
-  || log "WARN: migrate step returned non-zero (will retry on next deploy)."
+  sh -lc './node_modules/.bin/prisma db push --schema prisma/schema.prisma --skip-generate' \
+  || log "WARN: db push returned non-zero (will retry on next deploy)."
 
 log "Registering Debezium outbox connector..."
 ENV_FILE="$ENV_FILE" CONNECT_URL="http://localhost:${CONNECT_PORT:-8083}" \

@@ -14,13 +14,16 @@ COPY . .
 RUN pnpm prisma generate --schema apps/platform-reference/prisma/schema.prisma \
   && pnpm nx build platform-reference --skip-nx-cache
 
-# Prune dev dependencies for a lean runtime.
-RUN pnpm prune --prod
+# NOTE: we intentionally keep the full node_modules (no prune) so the runtime
+# image retains the Prisma query engine + the prisma CLI (used for db push).
 
 # ---------- runtime ----------
 FROM node:20-alpine AS runtime
 ENV NODE_ENV=production
 WORKDIR /app
+
+# Prisma's query engine needs openssl on Alpine; libc6-compat for glibc shims.
+RUN apk add --no-cache openssl libc6-compat
 
 # Non-root user.
 RUN addgroup -S livora && adduser -S livora -G livora
