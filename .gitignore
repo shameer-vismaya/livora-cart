@@ -19,6 +19,9 @@ secrets/
 # Build outputs
 dist/
 coverage/
+.nx/
+tmp/
+*.tsbuildinfo
 *.log
 # OS / IDE
 .DS_Store

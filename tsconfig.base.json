@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "composite": true,
+    "declaration": true,
+    "rootDir": ".",
+    "sourceMap": true,
+    "importHelpers": true,
+    "target": "ES2022",
+    "module": "commonjs",
+    "lib": ["ES2022"],
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "baseUrl": ".",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "strict": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "forceConsistentCasingInFileNames": true,
+    "paths": {
+      "@livora/contracts": ["libs/contracts/src/index.ts"],
+      "@livora/config": ["libs/config/src/index.ts"],
+      "@livora/observability": ["libs/observability/src/index.ts"]
+    }
+  },
+  "exclude": ["node_modules", "tmp"]
+}

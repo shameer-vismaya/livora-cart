@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.base.json",
+  "files": [],
+  "references": [
+    { "path": "./libs/contracts" },
+    { "path": "./libs/config" },
+    { "path": "./libs/observability" }
+  ]
+}
