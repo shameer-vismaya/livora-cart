@@ -24,6 +24,10 @@ export class JwksProvider {
   }
 
   get audiences(): string[] {
-    return this.env.JWT_AUDIENCE.split(',').map((a) => a.trim());
+    return this.env.JWT_AUDIENCE
+      ? this.env.JWT_AUDIENCE.split(',')
+          .map((a) => a.trim())
+          .filter(Boolean)
+      : [];
   }
 }

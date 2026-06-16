@@ -12,8 +12,9 @@ const EnvSchema = z.object({
   DEMO_DLQ_TOPIC: z.string().default('livora.demo.events.DLQ'),
   KEYCLOAK_URL: z.string().url().default('http://keycloak:8080'),
   KEYCLOAK_REALM: z.string().default('livora'),
-  // Comma-separated accepted audiences (Keycloak default audience is "account").
-  JWT_AUDIENCE: z.string().default('account'),
+  // Comma-separated accepted audiences. Empty = don't enforce `aud` (Keycloak
+  // public-client direct-grant tokens have no aud without an audience mapper).
+  JWT_AUDIENCE: z.string().default(''),
   OTEL_EXPORTER_OTLP_ENDPOINT: z.string().optional(),
 });
 

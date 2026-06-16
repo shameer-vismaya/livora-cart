@@ -5,7 +5,7 @@ import {
   Logger,
   UnauthorizedException,
 } from '@nestjs/common';
-import { jwtVerify } from 'jose';
+import { jwtVerify, type JWTVerifyOptions } from 'jose';
 import type { Request } from 'express';
 import { JwksProvider } from './jwks.provider';
 import { extractBearerToken, toAuthUser } from './auth.helpers';
@@ -29,10 +29,13 @@ export class KeycloakJwtGuard implements CanActivate {
     }
 
     try {
-      const { payload } = await jwtVerify(token, this.jwks.keySet, {
-        issuer: this.jwks.issuer,
-        audience: this.jwks.audiences,
-      });
+      const opts: JWTVerifyOptions = { issuer: this.jwks.issuer };
+      const audiences = this.jwks.audiences;
+      if (audiences.length > 0) {
+        // Only enforce audience when explicitly configured (JWT_AUDIENCE).
+        opts.audience = audiences;
+      }
+      const { payload } = await jwtVerify(token, this.jwks.keySet, opts);
       (req as Request & { user?: unknown }).user = toAuthUser(payload);
       return true;
     } catch (err) {
