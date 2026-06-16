@@ -18,6 +18,8 @@ volumes:
   kafka-data:
   opensearch-data:
   minio-data:
+  tempo-data:
+  grafana-data:
 
 services:
   # ──────────────────────────────── Data ────────────────────────────────
@@ -261,3 +263,100 @@ services:
       interval: 15s
       timeout: 5s
       retries: 10
+
+  # ─────────────────────────── Reference service ──────────────────────────
+  platform-reference:
+    build:
+      context: .
+      dockerfile: apps/platform-reference/Dockerfile
+    image: livora/platform-reference:latest
+    container_name: livora-platform-reference
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+      otel-collector:
+        condition: service_started
+    environment:
+      NODE_ENV: production
+      SERVICE_NAME: platform-reference
+      PORT: 3000
+      DATABASE_URL: postgresql://${POSTGRES_USER:-livora}:${POSTGRES_PASSWORD:-livora_dev_pw}@postgres:5432/${POSTGRES_DB:-livora}?schema=public
+      KAFKA_BROKERS: kafka:29092
+      KAFKA_CONSUMER_GROUP: platform-reference
+      DEMO_TOPIC: livora.demo.events
+      DEMO_DLQ_TOPIC: livora.demo.events.DLQ
+      KEYCLOAK_URL: http://keycloak:8080
+      KEYCLOAK_REALM: livora
+      JWT_AUDIENCE: account
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+    ports:
+      - '${PLATFORM_REFERENCE_PORT:-3000}:3000'
+    networks: [livora-net]
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -fsS http://localhost:3000/health/live || exit 1']
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+  # ──────────────────────────── Observability ─────────────────────────────
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.110.0
+    container_name: livora-otel-collector
+    restart: unless-stopped
+    command: ['--config=/etc/otel/config.yaml']
+    volumes:
+      - ./infra/observability/otel-collector-config.yaml:/etc/otel/config.yaml:ro
+    ports:
+      - '${OTEL_COLLECTOR_GRPC_PORT:-4317}:4317'
+      - '${OTEL_COLLECTOR_HTTP_PORT:-4318}:4318'
+    networks: [livora-net]
+
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    container_name: livora-prometheus
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+    volumes:
+      - ./infra/observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - '${PROMETHEUS_PORT:-9090}:9090'
+    networks: [livora-net]
+
+  tempo:
+    image: grafana/tempo:2.6.0
+    container_name: livora-tempo
+    restart: unless-stopped
+    command: ['-config.file=/etc/tempo/tempo.yaml']
+    volumes:
+      - ./infra/observability/tempo.yaml:/etc/tempo/tempo.yaml:ro
+      - tempo-data:/var/tempo
+    ports:
+      - '${TEMPO_PORT:-3200}:3200'
+    networks: [livora-net]
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    container_name: livora-grafana
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+      - tempo
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_AUTH_ANONYMOUS_ENABLED: 'true'
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+    volumes:
+      - ./infra/observability/grafana/datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml:ro
+      - ./infra/observability/grafana/dashboards.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml:ro
+      - ./infra/observability/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - '${GRAFANA_PORT:-3001}:3000'
+    networks: [livora-net]

@@ -1,0 +1,11 @@
+apiVersion: 1
+
+providers:
+  - name: Livora
+    orgId: 1
+    folder: Livora
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /etc/grafana/provisioning/dashboards
