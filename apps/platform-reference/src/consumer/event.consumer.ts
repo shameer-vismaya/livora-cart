@@ -60,25 +60,31 @@ export class EventConsumer implements OnModuleInit, OnModuleDestroy {
     });
     await this.consumer.run({
       eachMessage: async ({ message }) => {
-        const raw = message.value?.toString() ?? '{}';
-        let attempts = Number(message.headers?.['x-attempts']?.toString() ?? '0');
+        const raw = message.value?.toString() ?? 'null';
+        // EventRouter places the event id in a Kafka header (not the body, which
+        // is the business payload). See infra/debezium/outbox-connector.json.
+        const eventId = message.headers?.['eventId']?.toString();
+        const attempts = Number(message.headers?.['x-attempts']?.toString() ?? '0');
         try {
-          const event = JSON.parse(raw) as { eventId?: string; payload?: unknown };
-          if (!event.eventId) throw new Error('event missing eventId');
-          await this.applyOnce(event.eventId, event.payload);
+          if (!eventId) throw new Error('message missing eventId header');
+          const payload = JSON.parse(raw);
+          await this.applyOnce(eventId, payload);
         } catch (err) {
-          attempts += 1;
+          const next = attempts + 1;
           this.logger.warn(
-            `apply failed (attempt ${attempts}): ${(err as Error).message}`,
+            `apply failed (attempt ${next}): ${(err as Error).message}`,
           );
-          if (attempts >= EventConsumer.MAX_ATTEMPTS) {
+          if (next >= EventConsumer.MAX_ATTEMPTS) {
             await this.toDlq(raw, (err as Error).message);
           } else {
-            // Re-publish to the same topic with an incremented attempt counter.
+            // Re-publish to retry, preserving the eventId header.
             await this.producer.send({
               topic: this.env.DEMO_TOPIC,
               messages: [
-                { value: raw, headers: { 'x-attempts': String(attempts) } },
+                {
+                  value: message.value,
+                  headers: { eventId: eventId ?? '', 'x-attempts': String(next) },
+                },
               ],
             });
           }

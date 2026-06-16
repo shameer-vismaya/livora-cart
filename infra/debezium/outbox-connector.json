@@ -21,6 +21,8 @@
     "transforms.outbox.table.field.event.key": "aggregate_id",
     "transforms.outbox.table.field.event.type": "event_type",
     "transforms.outbox.table.field.event.payload": "payload",
+    "transforms.outbox.table.expand.json.payload": "true",
+    "transforms.outbox.table.fields.additional.placement": "id:header:eventId,event_type:header:eventType,aggregate_id:header:aggregateId",
     "transforms.outbox.route.by.field": "aggregate_type",
     "transforms.outbox.route.topic.replacement": "livora.demo.events",
     "key.converter": "org.apache.kafka.connect.storage.StringConverter",
