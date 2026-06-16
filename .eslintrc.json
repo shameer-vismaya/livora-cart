@@ -1,6 +1,6 @@
 {
   "root": true,
-  "ignorePatterns": ["node_modules", "dist", "coverage", ".nx", "**/*.js"],
+  "ignorePatterns": ["node_modules", "dist", "coverage", ".nx", "**/*.js", "**/generated/**"],
   "parser": "@typescript-eslint/parser",
   "parserOptions": { "ecmaVersion": 2022, "sourceType": "module" },
   "plugins": ["@typescript-eslint"],

@@ -50,9 +50,28 @@
       "redirectUris": ["*"],
       "webOrigins": ["*"],
       "protocol": "openid-connect"
+    },
+    {
+      "clientId": "identity-admin",
+      "name": "Identity Service (confidential, service account)",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "identity-admin-dev-secret",
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "protocol": "openid-connect"
     }
   ],
   "users": [
+    {
+      "username": "service-account-identity-admin",
+      "enabled": true,
+      "serviceAccountClientId": "identity-admin",
+      "clientRoles": {
+        "realm-management": ["manage-users", "view-users", "query-users"]
+      }
+    },
     {
       "username": "testcustomer",
       "enabled": true,

@@ -1,0 +1,51 @@
+// Identity Service data model. Owns the `identity` database.
+generator client {
+  provider      = "prisma-client-js"
+  output        = "../src/generated/prisma"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Local mirror of the Keycloak user (source of truth = Keycloak).
+model IdentityUser {
+  id         String   @id @default(uuid())
+  keycloakId String   @unique @map("keycloak_id")
+  email      String?  @unique
+  phone      String?  @unique
+  status     String   @default("active")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@map("identity_user")
+}
+
+model Outbox {
+  id            String   @id @default(uuid())
+  aggregateType String   @map("aggregate_type")
+  aggregateId   String   @map("aggregate_id")
+  eventType     String   @map("event_type")
+  payload       Json
+  traceparent   String?
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@index([aggregateType, aggregateId])
+  @@map("outbox")
+}
+
+model ProcessedEvent {
+  eventId     String   @id @map("event_id")
+  processedAt DateTime @default(now()) @map("processed_at")
+
+  @@map("processed_events")
+}
+
+model IdempotencyRecord {
+  key          String   @id
+  responseJson Json     @map("response_json")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@map("idempotency_records")
+}

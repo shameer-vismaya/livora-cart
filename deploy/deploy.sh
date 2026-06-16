@@ -59,38 +59,57 @@ docker compose "${COMPOSE_FILES[@]}" --env-file "$ENV_FILE" up -d
 log "Waiting for Postgres + Connect to be ready..."
 sleep 10
 
-log "Syncing database schema (prisma db push)..."
-# Use the LOCAL prisma CLI (pinned v5 in the image) — never npx (which would
-# download the latest major). No migration files yet this phase, so db push.
-# Run as root: node_modules (owned by root) must be writable for the engine.
-docker compose "${COMPOSE_FILES[@]}" --env-file "$ENV_FILE" \
-  run --rm --no-deps --user root --entrypoint "" platform-reference \
-  sh -lc './node_modules/.bin/prisma db push --schema prisma/schema.prisma --skip-generate' \
-  || log "WARN: db push returned non-zero (will retry on next deploy)."
+# Services with their own database (service:db). db push each (DB-per-service).
+DB_SERVICES=( "platform-reference:${POSTGRES_DB:-livora}" "identity-service:identity" )
+# Databases that hold outbox tables (need the CDC publication).
+OUTBOX_DBS=( "${POSTGRES_DB:-livora}" "identity" )
 
-log "Ensuring CDC publication (FOR ALL TABLES)..."
-# Self-heal existing volumes where init SQL already ran with an empty publication.
-# Idempotent: recreating the publication makes the slot capture the outbox table.
-docker compose "${COMPOSE_FILES[@]}" --env-file "$ENV_FILE" \
-  exec -T postgres psql -U "${POSTGRES_USER:-livora}" -d "${POSTGRES_DB:-livora}" \
-  -c "DROP PUBLICATION IF EXISTS livora_outbox; CREATE PUBLICATION livora_outbox FOR ALL TABLES;" \
-  >/dev/null 2>&1 && log "publication ready" || log "WARN: could not ensure publication."
+psql_super() {
+  docker compose "${COMPOSE_FILES[@]}" --env-file "$ENV_FILE" \
+    exec -T postgres psql -U "${POSTGRES_USER:-livora}" "$@"
+}
 
-log "Registering Debezium outbox connector..."
-# Connect's port is not published in prod, so register from INSIDE the network
-# via the connect container. envsubst fills DB creds; python extracts .config.
-if command -v envsubst >/dev/null 2>&1 && command -v python3 >/dev/null 2>&1; then
-  CONNECTOR_CFG="$(envsubst < infra/debezium/outbox-connector.json \
-    | python3 -c 'import sys,json; print(json.dumps(json.load(sys.stdin)["config"]))')"
-  if printf '%s' "$CONNECTOR_CFG" | docker compose "${COMPOSE_FILES[@]}" --env-file "$ENV_FILE" \
-      exec -T connect sh -c \
-      'curl -fsS -X PUT -H "Content-Type: application/json" --data @- http://localhost:8083/connectors/platform-reference-outbox/config'; then
-    echo; log "Connector registered."
-  else
-    log "WARN: connector registration deferred (re-run after Connect is healthy)."
+log "Ensuring per-service databases..."
+for entry in "${DB_SERVICES[@]}"; do
+  db="${entry##*:}"
+  if ! psql_super -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname='${db}'" 2>/dev/null | grep -q 1; then
+    psql_super -d postgres -c "CREATE DATABASE \"${db}\"" >/dev/null 2>&1 && log "created db ${db}" || log "WARN: create db ${db} failed"
   fi
+done
+
+log "Syncing schemas (prisma db push) per service..."
+# Local prisma CLI (pinned v5; never npx). Run as root (node_modules owned by root).
+for entry in "${DB_SERVICES[@]}"; do
+  svc="${entry%%:*}"
+  docker compose "${COMPOSE_FILES[@]}" --env-file "$ENV_FILE" \
+    run --rm --no-deps --user root --entrypoint "" "$svc" \
+    sh -lc './node_modules/.bin/prisma db push --schema prisma/schema.prisma --skip-generate' \
+    >/dev/null 2>&1 && log "db push ok ($svc)" || log "WARN: db push failed ($svc)"
+done
+
+log "Ensuring CDC publications (FOR ALL TABLES)..."
+for db in "${OUTBOX_DBS[@]}"; do
+  psql_super -d "$db" -c "DROP PUBLICATION IF EXISTS livora_outbox; CREATE PUBLICATION livora_outbox FOR ALL TABLES;" \
+    >/dev/null 2>&1 && log "publication ready ($db)" || log "WARN: publication failed ($db)"
+done
+
+log "Registering Debezium connectors..."
+# Register every infra/debezium/*-connector.json from inside the network (Connect
+# port is not host-published in prod). envsubst fills creds; python extracts config.
+if command -v envsubst >/dev/null 2>&1 && command -v python3 >/dev/null 2>&1; then
+  for cj in infra/debezium/*-connector.json; do
+    [ -f "$cj" ] || continue
+    name="$(python3 -c 'import sys,json;print(json.load(open(sys.argv[1]))["name"])' "$cj")"
+    cfg="$(envsubst < "$cj" | python3 -c 'import sys,json;print(json.dumps(json.load(sys.stdin)["config"]))')"
+    if printf '%s' "$cfg" | docker compose "${COMPOSE_FILES[@]}" --env-file "$ENV_FILE" \
+        exec -T connect sh -c "curl -fsS -X PUT -H 'Content-Type: application/json' --data @- http://localhost:8083/connectors/${name}/config"; then
+      echo; log "connector ${name} registered."
+    else
+      log "WARN: connector ${name} deferred."
+    fi
+  done
 else
-  log "WARN: envsubst/python3 missing on host — skipping connector registration."
+  log "WARN: envsubst/python3 missing on host — skipping connectors."
 fi
 
 log "Running health checks..."

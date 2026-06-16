@@ -1,22 +1,22 @@
 {
-  "name": "platform-reference",
+  "name": "identity-service",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "apps/platform-reference/src",
+  "sourceRoot": "apps/identity-service/src",
   "projectType": "application",
-  "tags": ["scope:service", "type:reference"],
+  "tags": ["scope:service", "type:identity"],
   "targets": {
     "build": {
       "executor": "@nx/js:tsc",
       "outputs": ["{options.outputPath}"],
       "options": {
-        "outputPath": "dist/apps/platform-reference",
-        "main": "apps/platform-reference/src/main.ts",
-        "tsConfig": "apps/platform-reference/tsconfig.app.json",
+        "outputPath": "dist/apps/identity-service",
+        "main": "apps/identity-service/src/main.ts",
+        "tsConfig": "apps/identity-service/tsconfig.app.json",
         "assets": [
-          "apps/platform-reference/prisma/schema.prisma",
+          "apps/identity-service/prisma/schema.prisma",
           {
             "glob": "**/*",
-            "input": "apps/platform-reference/src/generated/prisma",
+            "input": "apps/identity-service/src/generated/prisma",
             "output": "src/generated/prisma"
           }
         ]
@@ -26,7 +26,7 @@
     "test": {
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
-      "options": { "jestConfig": "apps/platform-reference/jest.config.ts" }
+      "options": { "jestConfig": "apps/identity-service/jest.config.ts" }
     }
   }
 }

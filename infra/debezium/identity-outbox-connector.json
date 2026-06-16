@@ -1,5 +1,5 @@
 {
-  "name": "platform-reference-outbox",
+  "name": "identity-outbox",
   "config": {
     "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
     "tasks.max": "1",
@@ -7,12 +7,12 @@
     "database.port": "5432",
     "database.user": "${POSTGRES_USER}",
     "database.password": "${POSTGRES_PASSWORD}",
-    "database.dbname": "livora",
-    "topic.prefix": "livora",
+    "database.dbname": "identity",
+    "topic.prefix": "livora-identity",
     "plugin.name": "pgoutput",
     "publication.name": "livora_outbox",
     "publication.autocreate.mode": "disabled",
-    "slot.name": "platform_reference_outbox",
+    "slot.name": "identity_outbox",
     "table.include.list": "public.outbox",
     "tombstones.on.delete": "false",
     "transforms": "outbox",
@@ -24,7 +24,7 @@
     "transforms.outbox.table.expand.json.payload": "true",
     "transforms.outbox.table.fields.additional.placement": "id:header:eventId,event_type:header:eventType,aggregate_id:header:aggregateId",
     "transforms.outbox.route.by.field": "aggregate_type",
-    "transforms.outbox.route.topic.replacement": "livora.demo.events",
+    "transforms.outbox.route.topic.replacement": "livora.user.events",
     "key.converter": "org.apache.kafka.connect.storage.StringConverter",
     "value.converter": "org.apache.kafka.connect.json.JsonConverter",
     "value.converter.schemas.enable": "false"

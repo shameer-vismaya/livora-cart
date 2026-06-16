@@ -1,5 +1,5 @@
 export default {
-  displayName: 'platform-reference',
+  displayName: 'identity-service',
   preset: '../../jest.preset.js',
   testEnvironment: 'node',
   transform: {
@@ -7,5 +7,5 @@ export default {
   },
   transformIgnorePatterns: ['/node_modules/', '<rootDir>/src/generated/'],
   moduleFileExtensions: ['ts', 'js', 'html'],
-  coverageDirectory: '../../coverage/apps/platform-reference',
+  coverageDirectory: '../../coverage/apps/identity-service',
 };

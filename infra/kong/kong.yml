@@ -16,6 +16,14 @@ services:
           - /reference
         strip_path: true
 
+  - name: identity-service
+    url: http://identity-service:3000
+    routes:
+      - name: identity
+        paths:
+          - /identity
+        strip_path: true
+
   - name: keycloak-realms
     url: http://keycloak:8080
     routes:

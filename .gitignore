@@ -26,6 +26,8 @@ coverage/
 tmp/
 *.tsbuildinfo
 *.log
+# Generated Prisma clients (per-service output)
+apps/*/src/generated/
 # OS / IDE
 .DS_Store
 Thumbs.db
