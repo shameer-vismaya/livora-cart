@@ -29,5 +29,57 @@ model UserProfile {
   createdAt  DateTime @default(now()) @map("created_at")
   updatedAt  DateTime @default(now()) @updatedAt @map("updated_at")
 
+  addresses UserAddress[]
+  kyc       KycReference?
+  pref      NotificationPref?
+
   @@map("user_profile")
+}
+
+/// Delivery address, geocoded to lat/lon (feeds Phase 4 nearby-store discovery).
+model UserAddress {
+  id        String      @id @default(uuid())
+  profileId String      @map("profile_id")
+  profile   UserProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  label     String?
+  line1     String
+  line2     String?
+  city      String
+  state     String
+  pincode   String
+  country   String      @default("IN")
+  lat       Float?
+  lon       Float?
+  isDefault Boolean     @default(false) @map("is_default")
+  createdAt DateTime    @default(now()) @map("created_at")
+
+  @@index([profileId])
+  @@map("user_address")
+}
+
+/// Store-owner KYC references (validated; sensitive fields masked in responses).
+model KycReference {
+  id          String      @id @default(uuid())
+  profileId   String      @unique @map("profile_id")
+  profile     UserProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  gstin       String?
+  pan         String?
+  bankAccount String?      @map("bank_account")
+  ifsc        String?
+  status      String       @default("pending")
+  createdAt   DateTime     @default(now()) @map("created_at")
+
+  @@map("kyc_reference")
+}
+
+/// Notification channel opt-ins.
+model NotificationPref {
+  profileId String      @id @map("profile_id")
+  profile   UserProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  push      Boolean     @default(true)
+  sms       Boolean     @default(true)
+  whatsapp  Boolean     @default(true)
+  email     Boolean     @default(true)
+
+  @@map("notification_pref")
 }
