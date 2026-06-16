@@ -349,6 +349,44 @@ services:
       timeout: 5s
       retries: 10
 
+  # ───────────────────────────── User service ─────────────────────────────
+  user-service:
+    build:
+      context: .
+      dockerfile: apps/user-service/Dockerfile
+    image: livora/user-service:latest
+    container_name: livora-user-service
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+      otel-collector:
+        condition: service_started
+    environment:
+      NODE_ENV: production
+      SERVICE_NAME: user-service
+      PORT: 3000
+      DATABASE_URL: postgresql://${POSTGRES_USER:-livora}:${POSTGRES_PASSWORD:-livora_dev_pw}@postgres:5432/users?schema=public
+      KAFKA_BROKERS: kafka:29092
+      KAFKA_CONSUMER_GROUP: user-service
+      USER_REGISTERED_TOPIC: livora.user.events
+      KEYCLOAK_URL: http://keycloak:8080
+      KEYCLOAK_REALM: livora
+      JWT_AUDIENCE: ""
+      GEOCODING_PROVIDER: ${GEOCODING_PROVIDER:-google}
+      GEOCODING_API_KEY: ${GEOCODING_API_KEY:-}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+    networks: [livora-net]
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -fsS http://localhost:3000/health/live || exit 1']
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
   # ──────────────────────────── Observability ─────────────────────────────
   otel-collector:
     image: otel/opentelemetry-collector-contrib:0.110.0

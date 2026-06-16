@@ -60,7 +60,7 @@ log "Waiting for Postgres + Connect to be ready..."
 sleep 10
 
 # Services with their own database (service:db). db push each (DB-per-service).
-DB_SERVICES=( "platform-reference:${POSTGRES_DB:-livora}" "identity-service:identity" )
+DB_SERVICES=( "platform-reference:${POSTGRES_DB:-livora}" "identity-service:identity" "user-service:users" )
 # Databases that hold outbox tables (need the CDC publication).
 OUTBOX_DBS=( "${POSTGRES_DB:-livora}" "identity" )
 

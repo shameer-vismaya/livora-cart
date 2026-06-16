@@ -63,6 +63,10 @@ services:
     restart: always
     ports: !reset []
 
+  user-service:
+    restart: always
+    ports: !reset []
+
   otel-collector:
     restart: always
     ports: !reset []
