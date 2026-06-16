@@ -29,6 +29,11 @@ RUN apk add --no-cache openssl libc6-compat
 RUN addgroup -S livora && adduser -S livora -G livora
 
 COPY --from=builder /repo/node_modules ./node_modules
+# Place the compiled workspace libs where node resolves them at runtime
+# (they are tsconfig path-aliases at build time, real packages at runtime).
+COPY --from=builder /repo/dist/libs/contracts ./node_modules/@livora/contracts
+COPY --from=builder /repo/dist/libs/config ./node_modules/@livora/config
+COPY --from=builder /repo/dist/libs/observability ./node_modules/@livora/observability
 COPY --from=builder /repo/dist/apps/platform-reference ./
 COPY --from=builder /repo/apps/platform-reference/prisma ./prisma
 
