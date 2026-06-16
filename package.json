@@ -24,6 +24,7 @@
     "@swc-node/register": "~1.9.2",
     "@swc/core": "~1.5.7",
     "@swc/helpers": "~0.5.11",
+    "@types/express": "^5.0.6",
     "@types/jest": "^29.5.12",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "20.14.10",
@@ -36,11 +37,22 @@
     "js-yaml": "^4.2.0",
     "nx": "20.3.0",
     "prettier": "^3.4.2",
+    "prisma": "^5",
     "ts-jest": "^29.2.5",
     "ts-node": "10.9.2",
     "typescript": "~5.6.3"
   },
   "dependencies": {
+    "@nestjs/common": "^10",
+    "@nestjs/config": "^3",
+    "@nestjs/core": "^10",
+    "@nestjs/platform-express": "^10",
+    "@nestjs/terminus": "^10",
+    "@prisma/client": "^5",
+    "jose": "^5",
+    "kafkajs": "^2",
+    "reflect-metadata": "^0.2",
+    "rxjs": "^7",
     "tslib": "^2.8.1",
     "zod": "^3.24.1"
   }
