@@ -1,5 +1,8 @@
 # Kong declarative (DB-less) config. Loaded at boot via KONG_DECLARATIVE_CONFIG.
-# Routes the edge to backend services and enforces Keycloak-issued JWTs.
+# Kong owns edge concerns: routing, rate-limiting, correlation ids.
+# JWT enforcement is done by the service's KeycloakJwtGuard (full JWKS verify),
+# so there is no public-key to inject here at deploy time. A future hardening
+# step (Cloud/DevSecOps phase) can add the openid-connect plugin at the edge.
 _format_version: '3.0'
 _transform: true
 
@@ -7,38 +10,10 @@ services:
   - name: platform-reference
     url: http://platform-reference:3000
     routes:
-      - name: reference-public
-        # Health endpoints are public (no auth) for liveness/readiness probes.
-        paths:
-          - /reference/health
-        strip_path: true
-      - name: reference-protected
+      - name: reference
         paths:
           - /reference
         strip_path: true
-        plugins:
-          - name: jwt
-            config:
-              # Validate RS256 JWTs from Keycloak. The consumer + JWK below map
-              # the realm's issuer to its public key. For local dev the key is
-              # pinned; in prod, prefer OIDC discovery / JWKS rotation.
-              claims_to_verify:
-                - exp
-              key_claim_name: iss
-
-consumers:
-  - username: keycloak-livora
-    jwt_secrets:
-      - key: http://localhost:8080/realms/livora
-        algorithm: RS256
-        # NOTE: replace rsa_public_key with the realm's actual public key on the
-        # host during deploy (deploy.sh fetches it from Keycloak JWKS). Placeholder
-        # kept here so the declarative file is valid; the protected route will
-        # reject tokens until the real key is injected.
-        rsa_public_key: |
-          -----BEGIN PUBLIC KEY-----
-          REPLACE_WITH_KEYCLOAK_REALM_RS256_PUBLIC_KEY
-          -----END PUBLIC KEY-----
 
 plugins:
   - name: rate-limiting

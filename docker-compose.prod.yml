@@ -1,0 +1,83 @@
+# Production overrides for single-host Docker deployment.
+# Used explicitly: docker compose -f docker-compose.yml -f docker-compose.prod.yml ...
+# (docker-compose.override.yml is dev-only and NOT loaded in this combination).
+#
+# Differences from base: restart policies, admin/infra ports bound to localhost
+# only (reach them via SSH tunnel), conservative resources. Secrets come from
+# .env.production. Kubernetes/DevSecOps is a later phase.
+name: livora
+
+services:
+  postgres:
+    restart: always
+    ports: !reset []
+
+  redis:
+    restart: always
+    ports: !reset []
+
+  kafka:
+    restart: always
+    ports:
+      - '127.0.0.1:${KAFKA_PORT:-9092}:9092'
+
+  schema-registry:
+    restart: always
+    ports: !reset []
+
+  connect:
+    restart: always
+    ports:
+      - '127.0.0.1:${CONNECT_PORT:-8083}:8083'
+
+  opensearch:
+    restart: always
+    ports:
+      - '127.0.0.1:${OPENSEARCH_PORT:-9200}:9200'
+
+  opensearch-dashboards:
+    restart: always
+    ports:
+      - '127.0.0.1:${OPENSEARCH_DASHBOARDS_PORT:-5601}:5601'
+
+  keycloak:
+    restart: always
+    # Front Keycloak behind the reverse proxy in prod; expose on localhost only.
+    ports:
+      - '127.0.0.1:${KEYCLOAK_PORT:-8080}:8080'
+
+  kong:
+    restart: always
+    # Proxy is the only public entrypoint; admin stays on localhost.
+    ports:
+      - '${KONG_PROXY_PORT:-8000}:8000'
+      - '127.0.0.1:${KONG_ADMIN_PORT:-8001}:8001'
+
+  minio:
+    restart: always
+    ports:
+      - '127.0.0.1:${MINIO_API_PORT:-9000}:9000'
+      - '127.0.0.1:${MINIO_CONSOLE_PORT:-9001}:9001'
+
+  platform-reference:
+    restart: always
+    ports:
+      - '127.0.0.1:${PLATFORM_REFERENCE_PORT:-3000}:3000'
+
+  otel-collector:
+    restart: always
+    ports: !reset []
+
+  prometheus:
+    restart: always
+    ports:
+      - '127.0.0.1:${PROMETHEUS_PORT:-9090}:9090'
+
+  tempo:
+    restart: always
+    ports: !reset []
+
+  grafana:
+    restart: always
+    ports:
+      - '127.0.0.1:${GRAFANA_PORT:-3001}:3000'
