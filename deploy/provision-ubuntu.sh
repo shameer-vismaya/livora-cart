@@ -23,7 +23,7 @@ if command -v docker >/dev/null 2>&1; then
 else
   log "Installing Docker prerequisites..."
   $SUDO apt-get update -y
-  $SUDO apt-get install -y ca-certificates curl gnupg
+  $SUDO apt-get install -y ca-certificates curl gnupg gettext-base python3
 
   log "Adding Docker's official GPG key + repository..."
   $SUDO install -m 0755 -d /etc/apt/keyrings
@@ -59,6 +59,11 @@ if [ -n "${SUDO_USER:-}" ] || [ "$(id -u)" -ne 0 ]; then
 fi
 
 # ── Host prep the stack needs ─────────────────────────────────────────────
+# Tools used by deploy.sh (envsubst from gettext-base; python3 for JSON).
+log "Ensuring deploy tooling (gettext-base, python3)..."
+$SUDO apt-get install -y gettext-base python3 >/dev/null 2>&1 || \
+  warn "could not install gettext-base/python3 — connector registration may be skipped."
+
 # OpenSearch requires a higher vm.max_map_count.
 log "Setting vm.max_map_count=262144 (OpenSearch requirement)..."
 echo 'vm.max_map_count=262144' | $SUDO tee /etc/sysctl.d/99-livora-opensearch.conf >/dev/null

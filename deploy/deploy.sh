@@ -43,6 +43,10 @@ fi
 # ── Local/on-host deploy ───────────────────────────────────────────────────
 command -v docker >/dev/null 2>&1 || die "docker not found — run deploy/provision-ubuntu.sh first."
 
+# Load env for this script (port + DEBEZIUM_* vars). Safe now values are quoted.
+set -a; # shellcheck disable=SC1090
+. "$ENV_FILE"; set +a
+
 log "Pulling base images..."
 docker compose "${COMPOSE_FILES[@]}" --env-file "$ENV_FILE" pull --ignore-buildable || true
 
@@ -58,14 +62,28 @@ sleep 10
 log "Syncing database schema (prisma db push)..."
 # Use the LOCAL prisma CLI (pinned v5 in the image) — never npx (which would
 # download the latest major). No migration files yet this phase, so db push.
+# Run as root: node_modules (owned by root) must be writable for the engine.
 docker compose "${COMPOSE_FILES[@]}" --env-file "$ENV_FILE" \
-  run --rm --no-deps --entrypoint "" platform-reference \
+  run --rm --no-deps --user root --entrypoint "" platform-reference \
   sh -lc './node_modules/.bin/prisma db push --schema prisma/schema.prisma --skip-generate' \
   || log "WARN: db push returned non-zero (will retry on next deploy)."
 
 log "Registering Debezium outbox connector..."
-ENV_FILE="$ENV_FILE" CONNECT_URL="http://localhost:${CONNECT_PORT:-8083}" \
-  bash deploy/register-connector.sh || log "WARN: connector registration deferred."
+# Connect's port is not published in prod, so register from INSIDE the network
+# via the connect container. envsubst fills DB creds; python extracts .config.
+if command -v envsubst >/dev/null 2>&1 && command -v python3 >/dev/null 2>&1; then
+  CONNECTOR_CFG="$(envsubst < infra/debezium/outbox-connector.json \
+    | python3 -c 'import sys,json; print(json.dumps(json.load(sys.stdin)["config"]))')"
+  if printf '%s' "$CONNECTOR_CFG" | docker compose "${COMPOSE_FILES[@]}" --env-file "$ENV_FILE" \
+      exec -T connect sh -c \
+      'curl -fsS -X PUT -H "Content-Type: application/json" --data @- http://localhost:8083/connectors/platform-reference-outbox/config'; then
+    echo; log "Connector registered."
+  else
+    log "WARN: connector registration deferred (re-run after Connect is healthy)."
+  fi
+else
+  log "WARN: envsubst/python3 missing on host — skipping connector registration."
+fi
 
 log "Running health checks..."
 ENV_FILE="$ENV_FILE" bash deploy/healthcheck.sh
