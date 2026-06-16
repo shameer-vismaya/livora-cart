@@ -4,11 +4,25 @@
 
 ## Snapshot
 - **Project:** Livora Cart — multi-vendor commerce marketplace (India)
-- **Phase:** **Phase 1 COMPLETE & VERIFIED ON HOST** — 5/5 plans; checkpoint closed
+- **Phase:** **Phase 2 BUILT** (7/7 plans, build-only) — **open host-verify checkpoint** (Plan 07 Task 2). Phase 1 complete & host-verified.
 - **Mode:** YOLO · **Depth:** Comprehensive · **Execution:** Parallel
 - **Last updated:** 2026-06-16
-- **Progress:** Phase 1 of 11 · `█░░░░░░░░░░` ~9%
-- **Deploy:** GitHub `shameer-vismaya/livora-cart` → Ubuntu host via `deploy/deploy.sh` (Docker Compose). Verified working end-to-end 2026-06-16.
+- **Progress:** Phase 2 of 11 · `██░░░░░░░░░` ~18%
+- **Deploy:** GitHub `shameer-vismaya/livora-cart` → Ubuntu host via `deploy/deploy.sh` (Docker Compose). Phase 1 verified end-to-end 2026-06-16.
+
+## Phase 2 Status (build-only; host verification pending)
+| Plan | Status | Local |
+|---|---|---|
+| 01 @livora/auth (JWT+RBAC+ABAC) | ✅ | 11 tests |
+| 02 reference→auth + smoke-test.sh | ✅ | green |
+| 03 identity scaffold+register+KC admin | ✅ | green |
+| 04 identity OTP(MSG91)+token-exchange+guest | ✅ | green |
+| 05 user-service+profile+UserRegistered consumer | ✅ | green |
+| 06 addresses/geocoding+KYC+prefs | ✅ | green |
+| 07 RBAC admin route + identity smoke test | ✅ Task1 | green |
+
+**OPEN CHECKPOINT (Plan 07 Task 2):** run on Ubuntu host: `git pull` + `deploy.sh` + `make smoke` + `make smoke-identity`.
+**New infra patterns this phase:** per-service Prisma client output (apps/*/src/generated/prisma); DB-per-service (livora/identity/users); deploy.sh loops services for db-create/db-push/publication/connector; Keycloak token-exchange for OTP login; @livora/auth shared.
 
 ## Phase 1 Execution Status (build-now / verify-on-host)
 | Plan | Status | Local verification |
