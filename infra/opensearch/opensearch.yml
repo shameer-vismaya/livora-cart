@@ -1,0 +1,7 @@
+# Minimal OpenSearch config for local single-node dev.
+# Security plugin disabled for local convenience (re-enable for prod / cloud).
+cluster.name: livora-search
+node.name: livora-os-1
+network.host: 0.0.0.0
+discovery.type: single-node
+plugins.security.disabled: true
