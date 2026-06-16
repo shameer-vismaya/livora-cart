@@ -1,0 +1,30 @@
+{
+  "name": "platform-reference-outbox",
+  "config": {
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+    "tasks.max": "1",
+    "database.hostname": "postgres",
+    "database.port": "5432",
+    "database.user": "${DEBEZIUM_DB_USER}",
+    "database.password": "${DEBEZIUM_DB_PASSWORD}",
+    "database.dbname": "${DEBEZIUM_DB_NAME}",
+    "topic.prefix": "livora",
+    "plugin.name": "pgoutput",
+    "publication.name": "livora_outbox",
+    "publication.autocreate.mode": "filtered",
+    "slot.name": "platform_reference_outbox",
+    "table.include.list": "public.outbox",
+    "tombstones.on.delete": "false",
+    "transforms": "outbox",
+    "transforms.outbox.type": "io.debezium.transforms.outbox.EventRouter",
+    "transforms.outbox.table.field.event.id": "id",
+    "transforms.outbox.table.field.event.key": "aggregate_id",
+    "transforms.outbox.table.field.event.type": "event_type",
+    "transforms.outbox.table.field.event.payload": "payload",
+    "transforms.outbox.route.by.field": "aggregate_type",
+    "transforms.outbox.route.topic.replacement": "livora.${routedByValue}.events",
+    "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": "false"
+  }
+}

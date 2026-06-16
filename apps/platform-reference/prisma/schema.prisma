@@ -1,0 +1,55 @@
+// Reference service data model. Demonstrates the transactional-outbox pattern
+// every Livora service reuses (see .planning/research/ARCHITECTURE.md §2).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Example business aggregate written transactionally alongside its outbox event.
+model DemoAggregate {
+  id        String   @id @default(uuid())
+  message   String
+  createdAt DateTime @default(now())
+
+  @@map("demo_aggregate")
+}
+
+/// Transactional outbox. The aggregate change AND the outbox row are written in
+/// ONE transaction; Debezium (EventRouter SMT) streams rows to Kafka. Never
+/// dual-write (DB + Kafka) from the app.
+model Outbox {
+  id            String   @id @default(uuid())
+  aggregateType String   @map("aggregate_type")
+  aggregateId   String   @map("aggregate_id")
+  eventType     String   @map("event_type")
+  payload       Json
+  traceparent   String?
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@index([aggregateType, aggregateId])
+  @@map("outbox")
+}
+
+/// Inbox / processed-events dedup table. A consumer records the eventId in the
+/// SAME transaction as applying the effect → duplicate delivery is a no-op
+/// (effectively-once). See ARCHITECTURE.md §2.
+model ProcessedEvent {
+  eventId     String   @id @map("event_id")
+  processedAt DateTime @default(now()) @map("processed_at")
+
+  @@map("processed_events")
+}
+
+/// Idempotency-key store for write APIs: replay the stored response on retry.
+model IdempotencyRecord {
+  key         String   @id
+  responseJson Json    @map("response_json")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("idempotency_records")
+}
