@@ -292,7 +292,8 @@ services:
       DEMO_DLQ_TOPIC: livora.demo.events.DLQ
       KEYCLOAK_URL: http://keycloak:8080
       KEYCLOAK_REALM: livora
-      JWT_AUDIENCE: account
+      # Empty = don't enforce aud (Keycloak public-client tokens carry no aud).
+      JWT_AUDIENCE: ""
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
     ports:
       - '${PLATFORM_REFERENCE_PORT:-3000}:3000'
