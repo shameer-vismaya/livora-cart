@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Poll the stack until all services are healthy (or time out). Exit non-zero on
-# failure so deploy.sh fails loudly.
+# Verify the stack via Docker container health (decoupled from host port
+# publishing) plus one functional probe through Kong. Non-zero exit on failure
+# so deploy.sh fails loudly.
 set -uo pipefail
 
 cd "$(dirname "$0")/.."
@@ -11,46 +12,61 @@ if [ -f "$ENV_FILE" ]; then
   . "$ENV_FILE"; set +a
 fi
 
-TIMEOUT="${HEALTH_TIMEOUT:-180}"
+TIMEOUT="${HEALTH_TIMEOUT:-240}"
 log() { printf '\033[36m[health]\033[0m %s\n' "$*"; }
-ok() { printf '\033[32m[health] OK:\033[0m %s\n' "$*"; }
+ok()  { printf '\033[32m[health] OK:\033[0m %s\n' "$*"; }
 bad() { printf '\033[31m[health] FAIL:\033[0m %s\n' "$*"; }
 
-# name|url pairs to probe via HTTP.
-PROBES=(
-  "kong|http://localhost:${KONG_PROXY_PORT:-8000}/reference/health/live"
-  "keycloak|http://localhost:${KEYCLOAK_PORT:-8080}/realms/livora/.well-known/openid-configuration"
-  "opensearch|http://localhost:${OPENSEARCH_PORT:-9200}/_cluster/health"
-  "schema-registry|http://localhost:${SCHEMA_REGISTRY_PORT:-8081}/subjects"
-  "connect|http://localhost:${CONNECT_PORT:-8083}/connectors"
-  "prometheus|http://localhost:${PROMETHEUS_PORT:-9090}/-/ready"
-  "grafana|http://localhost:${GRAFANA_PORT:-3001}/api/health"
-  "platform-reference|http://localhost:${PLATFORM_REFERENCE_PORT:-3000}/health/ready"
-  "minio|http://localhost:${MINIO_API_PORT:-9000}/minio/health/ready"
+# Containers WITH a Docker healthcheck — wait for "healthy".
+HEALTHCHECKED=(
+  livora-postgres livora-redis livora-kafka livora-schema-registry
+  livora-connect livora-opensearch livora-keycloak livora-kong
+  livora-minio livora-platform-reference
+)
+# Containers WITHOUT a healthcheck — just require "running".
+RUNNING_ONLY=(
+  livora-otel-collector livora-prometheus livora-tempo
+  livora-grafana livora-opensearch-dashboards
 )
 
-wait_for() {
-  local name="$1" url="$2" deadline=$(( $(date +%s) + TIMEOUT ))
+state()  { docker inspect -f '{{.State.Status}}' "$1" 2>/dev/null || echo "missing"; }
+health() { docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' "$1" 2>/dev/null || echo "missing"; }
+
+wait_healthy() {
+  local name="$1" deadline=$(( $(date +%s) + TIMEOUT ))
   while [ "$(date +%s)" -lt "$deadline" ]; do
-    if curl -fsS -o /dev/null "$url"; then ok "$name"; return 0; fi
-    sleep 3
+    case "$(health "$name")" in
+      healthy) ok "$name (healthy)"; return 0 ;;
+      unhealthy) bad "$name (unhealthy)"; return 1 ;;
+    esac
+    sleep 4
   done
-  bad "$name ($url)"
-  return 1
+  bad "$name (timeout, last=$(health "$name"))"; return 1
 }
 
-log "Probing services (timeout ${TIMEOUT}s each)..."
+wait_running() {
+  local name="$1" deadline=$(( $(date +%s) + TIMEOUT ))
+  while [ "$(date +%s)" -lt "$deadline" ]; do
+    [ "$(state "$name")" = "running" ] && { ok "$name (running)"; return 0; }
+    sleep 4
+  done
+  bad "$name (not running, last=$(state "$name"))"; return 1
+}
+
+command -v docker >/dev/null 2>&1 || { bad "docker not found"; exit 1; }
+
+log "Waiting for healthchecked containers (timeout ${TIMEOUT}s)..."
 rc=0
-for entry in "${PROBES[@]}"; do
-  name="${entry%%|*}"; url="${entry#*|}"
-  wait_for "$name" "$url" || rc=1
-done
+for c in "${HEALTHCHECKED[@]}"; do wait_healthy "$c" || rc=1; done
+for c in "${RUNNING_ONLY[@]}"; do wait_running "$c" || rc=1; done
 
-# Also surface compose-level health for anything with a healthcheck.
-if command -v docker >/dev/null 2>&1; then
-  log "Compose status:"
-  docker compose -f docker-compose.yml -f docker-compose.prod.yml ps || true
-fi
+# Functional probe through the public Kong proxy.
+KONG="http://localhost:${KONG_PROXY_PORT:-8000}/reference/health"
+log "Probing reference service via Kong: $KONG"
+if curl -fsS -o /dev/null "$KONG"; then ok "kong -> platform-reference /health"; else bad "kong -> platform-reference /health"; rc=1; fi
 
-if [ "$rc" -eq 0 ]; then ok "all probes passed"; else bad "one or more services unhealthy"; fi
+log "Compose status:"
+docker compose -f docker-compose.yml -f docker-compose.prod.yml ps || true
+
+if [ "$rc" -eq 0 ]; then ok "all checks passed"; else bad "one or more checks failed"; fi
 exit "$rc"

@@ -2,9 +2,11 @@
 # Used explicitly: docker compose -f docker-compose.yml -f docker-compose.prod.yml ...
 # (docker-compose.override.yml is dev-only and NOT loaded in this combination).
 #
-# Differences from base: restart policies, admin/infra ports bound to localhost
-# only (reach them via SSH tunnel), conservative resources. Secrets come from
-# .env.production. Kubernetes/DevSecOps is a later phase.
+# Philosophy: services talk over the `livora-net` Docker network by container
+# name, so infra ports are NOT published to the host (avoids port conflicts on
+# shared hosts). Only the Kong proxy is public; a few UIs bind to 127.0.0.1 for
+# on-host debugging / token fetch (reach them via SSH tunnel).
+# Kubernetes/DevSecOps is a later phase.
 name: livora
 
 services:
@@ -18,8 +20,7 @@ services:
 
   kafka:
     restart: always
-    ports:
-      - '127.0.0.1:${KAFKA_PORT:-9092}:9092'
+    ports: !reset []
 
   schema-registry:
     restart: always
@@ -27,13 +28,11 @@ services:
 
   connect:
     restart: always
-    ports:
-      - '127.0.0.1:${CONNECT_PORT:-8083}:8083'
+    ports: !reset []
 
   opensearch:
     restart: always
-    ports:
-      - '127.0.0.1:${OPENSEARCH_PORT:-9200}:9200'
+    ports: !reset []
 
   opensearch-dashboards:
     restart: always
@@ -42,7 +41,7 @@ services:
 
   keycloak:
     restart: always
-    # Front Keycloak behind the reverse proxy in prod; expose on localhost only.
+    # Bound to localhost for on-host token fetch; front behind a reverse proxy in real prod.
     ports:
       - '127.0.0.1:${KEYCLOAK_PORT:-8080}:8080'
 
@@ -56,13 +55,12 @@ services:
   minio:
     restart: always
     ports:
-      - '127.0.0.1:${MINIO_API_PORT:-9000}:9000'
       - '127.0.0.1:${MINIO_CONSOLE_PORT:-9001}:9001'
 
   platform-reference:
     restart: always
-    ports:
-      - '127.0.0.1:${PLATFORM_REFERENCE_PORT:-3000}:3000'
+    # Reached through Kong (/reference); not published directly.
+    ports: !reset []
 
   otel-collector:
     restart: always
