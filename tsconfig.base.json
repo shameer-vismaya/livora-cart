@@ -23,7 +23,8 @@
     "paths": {
       "@livora/contracts": ["libs/contracts/src/index.ts"],
       "@livora/config": ["libs/config/src/index.ts"],
-      "@livora/observability": ["libs/observability/src/index.ts"]
+      "@livora/observability": ["libs/observability/src/index.ts"],
+      "@livora/auth": ["libs/auth/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]
