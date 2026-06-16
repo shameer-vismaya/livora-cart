@@ -11,7 +11,7 @@
     "topic.prefix": "livora",
     "plugin.name": "pgoutput",
     "publication.name": "livora_outbox",
-    "publication.autocreate.mode": "filtered",
+    "publication.autocreate.mode": "disabled",
     "slot.name": "platform_reference_outbox",
     "table.include.list": "public.outbox",
     "tombstones.on.delete": "false",

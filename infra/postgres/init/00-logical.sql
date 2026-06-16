@@ -26,12 +26,14 @@ WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = :'repl_user')
 GRANT USAGE ON SCHEMA public TO :"repl_user";
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO :"repl_user";
 
--- A dedicated publication for outbox CDC (services add their outbox tables to it,
--- or Debezium manages it when publication.autocreate.mode=filtered).
--- Created empty here; the platform-reference connector (Plan 03) configures specifics.
+-- Publication for outbox CDC. FOR ALL TABLES so it dynamically includes outbox
+-- tables created later (by prisma db push). The Debezium connector uses
+-- publication.autocreate.mode=disabled (it only READS this publication) and
+-- table.include.list to filter to the outbox table(s). Created by the superuser
+-- here since the replication role cannot own/alter publications.
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_publication WHERE pubname = 'livora_outbox') THEN
-    EXECUTE 'CREATE PUBLICATION livora_outbox';
+    EXECUTE 'CREATE PUBLICATION livora_outbox FOR ALL TABLES';
   END IF;
 END$$;

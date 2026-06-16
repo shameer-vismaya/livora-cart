@@ -68,6 +68,14 @@ docker compose "${COMPOSE_FILES[@]}" --env-file "$ENV_FILE" \
   sh -lc './node_modules/.bin/prisma db push --schema prisma/schema.prisma --skip-generate' \
   || log "WARN: db push returned non-zero (will retry on next deploy)."
 
+log "Ensuring CDC publication (FOR ALL TABLES)..."
+# Self-heal existing volumes where init SQL already ran with an empty publication.
+# Idempotent: recreating the publication makes the slot capture the outbox table.
+docker compose "${COMPOSE_FILES[@]}" --env-file "$ENV_FILE" \
+  exec -T postgres psql -U "${POSTGRES_USER:-livora}" -d "${POSTGRES_DB:-livora}" \
+  -c "DROP PUBLICATION IF EXISTS livora_outbox; CREATE PUBLICATION livora_outbox FOR ALL TABLES;" \
+  >/dev/null 2>&1 && log "publication ready" || log "WARN: could not ensure publication."
+
 log "Registering Debezium outbox connector..."
 # Connect's port is not published in prod, so register from INSIDE the network
 # via the connect container. envsubst fills DB creds; python extracts .config.
