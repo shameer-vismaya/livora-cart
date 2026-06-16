@@ -1,0 +1,39 @@
+{
+  "project": "Livora Cart",
+  "version": "1.0.0",
+  "created": "2026-06-16",
+  "mode": "yolo",
+  "depth": "comprehensive",
+  "parallelization": "parallel",
+  "research": "enabled",
+  "stack": {
+    "frontend": "flutter",
+    "backend": "nestjs-typescript-microservices",
+    "database": "postgresql-per-service",
+    "cache": "redis",
+    "search": "opensearch",
+    "messaging": "kafka",
+    "objectStorage": "s3-compatible",
+    "apiGateway": "kong-or-envoy",
+    "graphqlGateway": "apollo-federation",
+    "identity": "keycloak",
+    "orchestration": "kubernetes"
+  },
+  "market": {
+    "region": "india",
+    "currency": "INR",
+    "psp": "razorpay-pluggable",
+    "otp": "msg91",
+    "tax": "gst"
+  },
+  "scope": "full-platform",
+  "scopeNotes": {
+    "payments": "integrate-psp-build-wallet-and-settlement",
+    "logistics": "build-core-defer-route-optimization"
+  },
+  "scale": {
+    "users": 100000,
+    "dailyOrders": 10000,
+    "stores": 1000
+  }
+}

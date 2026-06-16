@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+build/
+*.iml
+.pub-cache/
+.pub/
+# Env & secrets
+.env
+.env.*
+*.pem
+*.key
+secrets/
+# Build outputs
+dist/
+coverage/
+*.log
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
