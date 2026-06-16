@@ -4,9 +4,22 @@
 
 ## Snapshot
 - **Project:** Livora Cart — multi-vendor commerce marketplace (India)
-- **Phase:** **Phase 1 planned** (`.planning/phases/01-foundation/`) → ready to execute
+- **Phase:** **Phase 1 EXECUTED** (build-only) — 5/5 plans authored & committed; 1 open host checkpoint
 - **Mode:** YOLO · **Depth:** Comprehensive · **Execution:** Parallel
 - **Last updated:** 2026-06-16
+- **Progress:** Phase 1 of 11 · `█░░░░░░░░░░` ~9%
+
+## Phase 1 Execution Status (build-now / verify-on-host)
+| Plan | Status | Local verification |
+|---|---|---|
+| 01 monorepo + libs | ✅ done | lint+test+build green (7 tests) |
+| 02 docker-compose infra | ✅ authored | YAML/JSON validated |
+| 03 reference service | ✅ done | lint+test+build green (4 tests) |
+| 04 observability | ✅ done | OTel SDK compiles; configs valid |
+| 05 ubuntu deploy | ⚠️ tasks 1-2 done | bash -n + compose valid |
+
+**OPEN CHECKPOINT:** Plan 05 Task 3 — run `deploy.sh` on a real Ubuntu host to verify the stack end-to-end (Docker not available locally). See `phases/01-foundation/01-foundation-05-SUMMARY.md`.
+**Build env note:** Node v22 + pnpm 9 present; **Docker NOT installed locally** → Plans 02–05 runtime-verified on the Ubuntu host per owner decision.
 
 ## Scope Adjustments (owner directives)
 - **2026-06-16:** Phase 1 re-scoped — **drop DevSecOps for now**; deliver a **Docker Compose stack + Ubuntu Docker deploy script** instead. Kubernetes/EKS, Helm, Argo CD/GitOps, Terraform, and CI/CD security-scan gates **deferred to a later "Cloud & DevSecOps" phase** (tracked in ROADMAP Phase 1 note).
@@ -58,7 +71,10 @@
 Money correctness · oversell · SAGA partial failure · reconciliation · exchange integrity · cross-tenant leakage · Razorpay async + COD recon · GST compliance · campaign-spike resilience · scope discipline.
 
 ## Next Action
-Run `/gsd:plan-phase 1` to create the detailed Phase 1 plan.
+1. **Verify Phase 1 on an Ubuntu host** (open checkpoint) — `bash deploy/provision-ubuntu.sh` then `bash deploy/deploy.sh`.
+2. Then `/gsd-plan-phase 2` (Identity, Users & Access Control).
 
 ## Changelog
 - 2026-06-16: Project initialized — context, research, requirements, roadmap, state created.
+- 2026-06-16: Phase 1 re-scoped (Docker/Ubuntu, defer K8s/DevSecOps) and planned (5 plans).
+- 2026-06-16: Phase 1 executed build-only — monorepo+libs, compose infra, reference service (outbox/Kafka/JWT), observability, ubuntu deploy scripts. All local checks green; host verification pending.
