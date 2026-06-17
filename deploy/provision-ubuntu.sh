@@ -60,9 +60,9 @@ fi
 
 # ── Host prep the stack needs ─────────────────────────────────────────────
 # Tools used by deploy.sh (envsubst from gettext-base; python3 for JSON).
-log "Ensuring deploy tooling (gettext-base, python3)..."
-$SUDO apt-get install -y gettext-base python3 >/dev/null 2>&1 || \
-  warn "could not install gettext-base/python3 — connector registration may be skipped."
+log "Ensuring deploy tooling (gettext-base, python3, make)..."
+$SUDO apt-get install -y gettext-base python3 make >/dev/null 2>&1 || \
+  warn "could not install gettext-base/python3/make — use 'bash deploy/<script>.sh' directly."
 
 # OpenSearch requires a higher vm.max_map_count.
 log "Setting vm.max_map_count=262144 (OpenSearch requirement)..."

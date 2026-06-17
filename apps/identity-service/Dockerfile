@@ -7,6 +7,7 @@ COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 COPY . .
 RUN pnpm prisma generate --schema apps/identity-service/prisma/schema.prisma \
+  && pnpm nx run-many -t build -p contracts config observability auth --skip-nx-cache \
   && pnpm nx build identity-service --skip-nx-cache
 
 FROM node:20-alpine AS runtime

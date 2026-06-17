@@ -12,6 +12,7 @@ RUN pnpm install --frozen-lockfile
 COPY . .
 # Generate Prisma client + compile the service.
 RUN pnpm prisma generate --schema apps/platform-reference/prisma/schema.prisma \
+  && pnpm nx run-many -t build -p contracts config observability auth --skip-nx-cache \
   && pnpm nx build platform-reference --skip-nx-cache
 
 # NOTE: we intentionally keep the full node_modules (no prune) so the runtime
