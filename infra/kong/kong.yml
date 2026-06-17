@@ -32,6 +32,14 @@ services:
           - /users
         strip_path: true
 
+  - name: store-service
+    url: http://store-service:3000
+    routes:
+      - name: stores
+        paths:
+          - /stores
+        strip_path: true
+
   - name: keycloak-realms
     url: http://keycloak:8080
     routes:

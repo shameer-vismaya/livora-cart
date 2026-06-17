@@ -67,6 +67,10 @@ services:
     restart: always
     ports: !reset []
 
+  store-service:
+    restart: always
+    ports: !reset []
+
   otel-collector:
     restart: always
     ports: !reset []

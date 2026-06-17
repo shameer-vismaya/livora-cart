@@ -66,9 +66,9 @@ docker compose "${COMPOSE_FILES[@]}" --env-file "$ENV_FILE" \
   exec -T kong kong reload >/dev/null 2>&1 && log "kong reloaded" || log "WARN: kong reload failed"
 
 # Services with their own database (service:db). db push each (DB-per-service).
-DB_SERVICES=( "platform-reference:${POSTGRES_DB:-livora}" "identity-service:identity" "user-service:users" )
+DB_SERVICES=( "platform-reference:${POSTGRES_DB:-livora}" "identity-service:identity" "user-service:users" "store-service:stores" )
 # Databases that hold outbox tables (need the CDC publication).
-OUTBOX_DBS=( "${POSTGRES_DB:-livora}" "identity" )
+OUTBOX_DBS=( "${POSTGRES_DB:-livora}" "identity" "stores" )
 
 psql_super() {
   docker compose "${COMPOSE_FILES[@]}" --env-file "$ENV_FILE" \

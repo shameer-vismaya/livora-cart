@@ -1,0 +1,87 @@
+// Store Service data model. Owns the `stores` database. Stores are tenants.
+generator client {
+  provider      = "prisma-client-js"
+  output        = "../src/generated/prisma"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Outbox {
+  id            String   @id @default(uuid())
+  aggregateType String   @map("aggregate_type")
+  aggregateId   String   @map("aggregate_id")
+  eventType     String   @map("event_type")
+  payload       Json
+  traceparent   String?
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@index([aggregateType, aggregateId])
+  @@map("outbox")
+}
+
+model ProcessedEvent {
+  eventId     String   @id @map("event_id")
+  processedAt DateTime @default(now()) @map("processed_at")
+
+  @@map("processed_events")
+}
+
+model IdempotencyRecord {
+  key          String   @id
+  responseJson Json     @map("response_json")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@map("idempotency_records")
+}
+
+/// A store = a tenant in the marketplace.
+model Store {
+  id               String   @id @default(uuid())
+  ownerKeycloakId  String   @map("owner_keycloak_id")
+  name             String
+  slug             String   @unique
+  description      String?
+  logoUrl          String?  @map("logo_url")
+  bannerUrl        String?  @map("banner_url")
+  status           String   @default("draft") // draft|pending|approved|rejected|suspended
+  gstin            String?
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @default(now()) @updatedAt @map("updated_at")
+
+  hours StoreHours[]
+  zones DeliveryZone[]
+
+  @@index([ownerKeycloakId])
+  @@index([status])
+  @@map("store")
+}
+
+model StoreHours {
+  id        String  @id @default(uuid())
+  storeId   String  @map("store_id")
+  store     Store   @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  day       Int // 0=Sun..6=Sat
+  openTime  String  @map("open_time")
+  closeTime String  @map("close_time")
+  closed    Boolean @default(false)
+
+  @@index([storeId])
+  @@map("store_hours")
+}
+
+model DeliveryZone {
+  id       String  @id @default(uuid())
+  storeId  String  @map("store_id")
+  store    Store   @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  pincode  String?
+  radiusKm Float?  @map("radius_km")
+  centerLat Float? @map("center_lat")
+  centerLon Float? @map("center_lon")
+
+  @@index([storeId])
+  @@map("delivery_zone")
+}
