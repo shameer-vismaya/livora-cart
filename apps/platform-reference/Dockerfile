@@ -39,6 +39,8 @@ COPY --from=builder /repo/dist/libs/observability ./node_modules/@livora/observa
 COPY --from=builder /repo/dist/libs/auth ./node_modules/@livora/auth
 COPY --from=builder /repo/dist/apps/platform-reference ./
 COPY --from=builder /repo/apps/platform-reference/prisma ./prisma
+# Generated Prisma client is gitignored, so nx asset-copy skips it — copy explicitly.
+COPY --from=builder /repo/apps/platform-reference/src/generated/prisma ./src/generated/prisma
 
 USER livora
 EXPOSE 3000
