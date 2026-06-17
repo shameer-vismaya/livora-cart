@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { makeDomainEvent } from '@livora/contracts';
 import { PrismaService } from '../prisma/prisma.service';
@@ -62,5 +62,48 @@ export class StoreService {
       throw new NotFoundException('Store not found');
     }
     return store;
+  }
+
+  private async assertOwner(ownerKeycloakId: string, storeId: string): Promise<void> {
+    const store = await this.prisma.store.findUnique({ where: { id: storeId } });
+    if (!store) throw new NotFoundException('Store not found');
+    if (store.ownerKeycloakId !== ownerKeycloakId) {
+      throw new ForbiddenException('Not your store');
+    }
+  }
+
+  async updateProfile(
+    ownerKeycloakId: string,
+    storeId: string,
+    dto: { description?: string; logoUrl?: string; bannerUrl?: string },
+  ) {
+    await this.assertOwner(ownerKeycloakId, storeId);
+    return this.prisma.store.update({ where: { id: storeId }, data: dto });
+  }
+
+  async setHours(
+    ownerKeycloakId: string,
+    storeId: string,
+    hours: Array<{ day: number; openTime: string; closeTime: string; closed?: boolean }>,
+  ) {
+    await this.assertOwner(ownerKeycloakId, storeId);
+    return this.prisma.$transaction(async (tx) => {
+      await tx.storeHours.deleteMany({ where: { storeId } });
+      await tx.storeHours.createMany({ data: hours.map((h) => ({ ...h, storeId })) });
+      return tx.storeHours.findMany({ where: { storeId } });
+    });
+  }
+
+  async setDeliveryZones(
+    ownerKeycloakId: string,
+    storeId: string,
+    zones: Array<{ pincode?: string; radiusKm?: number; centerLat?: number; centerLon?: number }>,
+  ) {
+    await this.assertOwner(ownerKeycloakId, storeId);
+    return this.prisma.$transaction(async (tx) => {
+      await tx.deliveryZone.deleteMany({ where: { storeId } });
+      await tx.deliveryZone.createMany({ data: zones.map((z) => ({ ...z, storeId })) });
+      return tx.deliveryZone.findMany({ where: { storeId } });
+    });
   }
 }

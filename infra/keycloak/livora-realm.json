@@ -38,7 +38,23 @@
       "directAccessGrantsEnabled": true,
       "redirectUris": ["*"],
       "webOrigins": ["*"],
-      "protocol": "openid-connect"
+      "protocol": "openid-connect",
+      "protocolMappers": [
+        {
+          "name": "stores",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "config": {
+            "user.attribute": "stores",
+            "claim.name": "stores",
+            "jsonType.label": "String",
+            "multivalued": "true",
+            "access.token.claim": "true",
+            "id.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        }
+      ]
     },
     {
       "clientId": "livora-store-portal",
@@ -49,7 +65,23 @@
       "directAccessGrantsEnabled": true,
       "redirectUris": ["*"],
       "webOrigins": ["*"],
-      "protocol": "openid-connect"
+      "protocol": "openid-connect",
+      "protocolMappers": [
+        {
+          "name": "stores",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "config": {
+            "user.attribute": "stores",
+            "claim.name": "stores",
+            "jsonType.label": "String",
+            "multivalued": "true",
+            "access.token.claim": "true",
+            "id.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        }
+      ]
     },
     {
       "clientId": "livora-admin-portal",
