@@ -1,0 +1,32 @@
+{
+  "name": "catalog-service",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/catalog-service/src",
+  "projectType": "application",
+  "tags": ["scope:service", "type:identity"],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/apps/catalog-service",
+        "main": "apps/catalog-service/src/main.ts",
+        "tsConfig": "apps/catalog-service/tsconfig.app.json",
+        "assets": [
+          "apps/catalog-service/prisma/schema.prisma",
+          {
+            "glob": "**/*",
+            "input": "apps/catalog-service/src/generated/prisma",
+            "output": "src/generated/prisma"
+          }
+        ]
+      }
+    },
+    "lint": { "executor": "@nx/eslint:lint" },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": { "jestConfig": "apps/catalog-service/jest.config.ts" }
+    }
+  }
+}

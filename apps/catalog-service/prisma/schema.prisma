@@ -1,0 +1,67 @@
+// Catalog Service data model. Owns the `catalog` database.
+generator client {
+  provider      = "prisma-client-js"
+  output        = "../src/generated/prisma"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Outbox {
+  id            String   @id @default(uuid())
+  aggregateType String   @map("aggregate_type")
+  aggregateId   String   @map("aggregate_id")
+  eventType     String   @map("event_type")
+  payload       Json
+  traceparent   String?
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@index([aggregateType, aggregateId])
+  @@map("outbox")
+}
+
+model ProcessedEvent {
+  eventId     String   @id @map("event_id")
+  processedAt DateTime @default(now()) @map("processed_at")
+
+  @@map("processed_events")
+}
+
+model IdempotencyRecord {
+  key          String   @id
+  responseJson Json     @map("response_json")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@map("idempotency_records")
+}
+
+/// Platform-governed category taxonomy (tree).
+model Category {
+  id        String     @id @default(uuid())
+  parentId  String?    @map("parent_id")
+  parent    Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children  Category[] @relation("CategoryTree")
+  name      String
+  slug      String     @unique
+  path      String // materialized path of slugs, e.g. /grocery/snacks
+  sortOrder Int        @default(0) @map("sort_order")
+  active    Boolean    @default(true)
+  createdAt DateTime   @default(now()) @map("created_at")
+
+  @@index([parentId])
+  @@map("category")
+}
+
+model Brand {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  logoUrl   String?  @map("logo_url")
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("brand")
+}

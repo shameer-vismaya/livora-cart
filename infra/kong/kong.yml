@@ -40,6 +40,14 @@ services:
           - /stores
         strip_path: true
 
+  - name: catalog-service
+    url: http://catalog-service:3000
+    routes:
+      - name: catalog
+        paths:
+          - /catalog
+        strip_path: true
+
   - name: keycloak-realms
     url: http://keycloak:8080
     routes:

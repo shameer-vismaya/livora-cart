@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": { "esModuleInterop": true, "target": "ES2022" },
+  "files": [],
+  "include": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.spec.json" }
+  ]
+}
