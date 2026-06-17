@@ -92,9 +92,6 @@ export class KeycloakAdminService {
       requiredActions: [],
       attributes: input.phone ? { phone: [input.phone] } : undefined,
     };
-    if (input.password) {
-      body['credentials'] = [{ type: 'password', value: input.password, temporary: false }];
-    }
     const res = await fetch(`${this.base()}/users`, {
       method: 'POST',
       headers,
@@ -103,13 +100,31 @@ export class KeycloakAdminService {
     if (res.status === 409) throw new ConflictException('User already exists');
     if (!res.ok) throw new Error(`Keycloak createUser failed: ${res.status} ${await res.text()}`);
     const location = res.headers.get('location') ?? '';
-    const id = location.split('/').pop();
+    let id = location.split('/').pop();
     if (!id) {
-      const found = await this.findUserId({ email: input.email, phone: input.phone });
-      if (found) return found;
-      throw new Error('Could not resolve created user id');
+      id = (await this.findUserId({ email: input.email, phone: input.phone })) ?? undefined;
+      if (!id) throw new Error('Could not resolve created user id');
+    }
+    // Set the password via the dedicated endpoint — inline credentials on POST
+    // /users do not reliably persist (user ends up with no credential ->
+    // "Account is not fully set up" on login).
+    if (input.password) {
+      await this.setPassword(id, input.password);
     }
     return id;
+  }
+
+  /** Set/reset a user's password (non-temporary). */
+  async setPassword(userId: string, password: string): Promise<void> {
+    const headers = await this.authHeaders();
+    const res = await fetch(`${this.base()}/users/${userId}/reset-password`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify({ type: 'password', value: password, temporary: false }),
+    });
+    if (!res.ok) {
+      throw new Error(`Keycloak set-password failed: ${res.status} ${await res.text()}`);
+    }
   }
 
   /** Assign a realm role to a user by role name. */
