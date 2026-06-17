@@ -152,6 +152,30 @@
         { "type": "password", "value": "admin_pw", "temporary": false }
       ],
       "realmRoles": ["admin"]
+    },
+    {
+      "username": "teststoreowner",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "teststoreowner@livora.local",
+      "firstName": "Test",
+      "lastName": "Owner",
+      "credentials": [
+        { "type": "password", "value": "owner_pw", "temporary": false }
+      ],
+      "realmRoles": ["store_owner"]
+    },
+    {
+      "username": "teststoreowner2",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "teststoreowner2@livora.local",
+      "firstName": "Test",
+      "lastName": "Owner2",
+      "credentials": [
+        { "type": "password", "value": "owner_pw", "temporary": false }
+      ],
+      "realmRoles": ["store_owner"]
     }
   ]
 }

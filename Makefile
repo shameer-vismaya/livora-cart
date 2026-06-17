@@ -67,3 +67,7 @@ smoke: ## Post-deploy smoke test (Phase 1 spine)
 .PHONY: smoke-identity
 smoke-identity: ## Phase 2 smoke test (register/login/profile/RBAC)
 	@bash deploy/smoke-test-identity.sh
+
+.PHONY: smoke-store
+smoke-store: ## Phase 3 smoke test (store onboarding/catalog/isolation)
+	@bash deploy/smoke-test-store.sh
