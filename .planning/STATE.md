@@ -4,10 +4,24 @@
 
 ## Snapshot
 - **Project:** Livora Cart — multi-vendor commerce marketplace (India)
-- **Phase:** **Phase 2 COMPLETE & HOST-VERIFIED** (7/7 plans). Phase 1 also complete. → ready for **Phase 3**.
+- **Phase:** **Phase 3 BUILT** (7/7 plans, build-only) — **open host-verify checkpoint** (Plan 07 Task 2). Phases 1 & 2 complete & host-verified.
 - **Mode:** YOLO · **Depth:** Comprehensive · **Execution:** Parallel
 - **Last updated:** 2026-06-17
-- **Progress:** Phase 2 of 11 done · `██░░░░░░░░░` ~18%
+- **Progress:** Phase 3 of 11 · `███░░░░░░░░` ~27%
+
+## Phase 3 Status (build-only; host verification pending)
+| Plan | Status | Local |
+|---|---|---|
+| 01 store-service + onboarding | ✅ | green |
+| 02 store governance + stores claim | ✅ | green |
+| 03 catalog-service + taxonomy/brands | ✅ | green |
+| 04 products + variants + GST/HSN + tenant scoping | ✅ | green |
+| 05 media (presigned) + moderation + ProductPublished | ✅ | green |
+| 06 multi-tenancy RLS (catalog) | ✅ | green |
+| 07 store smoke test + seed owners | ✅ Task1 | green |
+
+**OPEN CHECKPOINT (Plan 07 Task 2):** host: `git pull` + `deploy.sh` + `up -d --force-recreate keycloak` (realm: stores mapper + seed owners) + `bash deploy/smoke-test.sh|smoke-test-identity.sh|smoke-test-store.sh`.
+**New this phase:** store-service + catalog-service (9 services total); `stores` claim via Keycloak attribute+mapper for ABAC; products with GST/HSN (paise); presigned S3/MinIO media; product moderation + `livora.catalog.events`; Postgres RLS (catalog, permissive-when-unset).
 - **Deploy:** GitHub `shameer-vismaya/livora-cart` → Ubuntu host via `deploy/deploy.sh` (Docker Compose). Phase 1 verified end-to-end 2026-06-16.
 
 ## Phase 2 Status (build-only; host verification pending)
