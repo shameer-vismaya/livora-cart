@@ -17,8 +17,8 @@ token_for() {
     -d "username=$1" -d "password=$2" | sed -n 's/.*"access_token":"\([^"]*\)".*/\1/p'
 }
 
-# unique email per run
-EMAIL="smoke+$(date +%s 2>/dev/null || echo x)$RANDOM@livora.local"
+# unique email per run (no '+': it becomes a space in form-encoded login)
+EMAIL="smoke-$(date +%s 2>/dev/null || echo x)-$RANDOM@livora.local"
 PW="password1"
 
 # 1. register (email)
