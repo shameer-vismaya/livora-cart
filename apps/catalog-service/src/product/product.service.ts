@@ -37,16 +37,20 @@ export class ProductService {
     }
   }
 
-  /** ALWAYS scoped by storeId — the core tenant-isolation invariant. */
+  /**
+   * ALWAYS scoped by storeId (app-level invariant) AND run under the RLS tenant
+   * GUC (DB-level backstop) — defense in depth.
+   */
   list(storeId: string) {
-    return this.prisma.product.findMany({ where: { storeId }, include: { variants: true } });
+    return this.prisma.withTenant(storeId, (tx) =>
+      tx.product.findMany({ where: { storeId }, include: { variants: true } }),
+    );
   }
 
   async get(storeId: string, productId: string) {
-    const product = await this.prisma.product.findFirst({
-      where: { id: productId, storeId },
-      include: { variants: true },
-    });
+    const product = await this.prisma.withTenant(storeId, (tx) =>
+      tx.product.findFirst({ where: { id: productId, storeId }, include: { variants: true } }),
+    );
     if (!product) throw new NotFoundException('Product not found');
     return product;
   }

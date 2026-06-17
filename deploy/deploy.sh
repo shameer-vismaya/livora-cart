@@ -99,6 +99,14 @@ for db in "${OUTBOX_DBS[@]}"; do
     >/dev/null 2>&1 && log "publication ready ($db)" || log "WARN: publication failed ($db)"
 done
 
+log "Applying RLS policies (catalog)..."
+if [ -f apps/catalog-service/prisma/rls/enable-rls.sql ]; then
+  docker compose "${COMPOSE_FILES[@]}" --env-file "$ENV_FILE" \
+    exec -T postgres psql -U "${POSTGRES_USER:-livora}" -d catalog \
+    < apps/catalog-service/prisma/rls/enable-rls.sql >/dev/null 2>&1 \
+    && log "RLS applied (catalog)" || log "WARN: RLS apply failed (catalog)."
+fi
+
 log "Ensuring object-storage bucket (livora-catalog)..."
 # Create the catalog bucket in MinIO via a one-shot mc container on the network.
 docker run --rm --network livora_livora-net minio/mc:latest sh -c "
