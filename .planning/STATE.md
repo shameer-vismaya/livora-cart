@@ -4,10 +4,10 @@
 
 ## Snapshot
 - **Project:** Livora Cart — multi-vendor commerce marketplace (India)
-- **Phase:** **Phase 2 BUILT** (7/7 plans, build-only) — **open host-verify checkpoint** (Plan 07 Task 2). Phase 1 complete & host-verified.
+- **Phase:** **Phase 2 COMPLETE & HOST-VERIFIED** (7/7 plans). Phase 1 also complete. → ready for **Phase 3**.
 - **Mode:** YOLO · **Depth:** Comprehensive · **Execution:** Parallel
-- **Last updated:** 2026-06-16
-- **Progress:** Phase 2 of 11 · `██░░░░░░░░░` ~18%
+- **Last updated:** 2026-06-17
+- **Progress:** Phase 2 of 11 done · `██░░░░░░░░░` ~18%
 - **Deploy:** GitHub `shameer-vismaya/livora-cart` → Ubuntu host via `deploy/deploy.sh` (Docker Compose). Phase 1 verified end-to-end 2026-06-16.
 
 ## Phase 2 Status (build-only; host verification pending)
@@ -19,10 +19,14 @@
 | 04 identity OTP(MSG91)+token-exchange+guest | ✅ | green |
 | 05 user-service+profile+UserRegistered consumer | ✅ | green |
 | 06 addresses/geocoding+KYC+prefs | ✅ | green |
-| 07 RBAC admin route + identity smoke test | ✅ Task1 | green |
+| 07 RBAC admin route + identity smoke test | ✅ host-verified | green |
 
-**OPEN CHECKPOINT (Plan 07 Task 2):** run on Ubuntu host: `git pull` + `deploy.sh` + `make smoke` + `make smoke-identity`.
-**New infra patterns this phase:** per-service Prisma client output (apps/*/src/generated/prisma); DB-per-service (livora/identity/users); deploy.sh loops services for db-create/db-push/publication/connector; Keycloak token-exchange for OTP login; @livora/auth shared.
+**CHECKPOINT CLOSED (2026-06-17):** `make smoke` (Phase 1 spine) + `bash deploy/smoke-test-identity.sh` (register→login→profile→address→RBAC) both green on host.
+**New infra patterns this phase:** per-service Prisma client output (apps/*/src/generated/prisma, copied explicitly in Dockerfile since gitignored); DB-per-service (livora/identity/users); deploy.sh loops services for db-create/db-push/publication/connector + `kong reload`; Keycloak token-exchange for OTP login; @livora/auth shared (RBAC/ABAC).
+**Host gotchas fixed (see Plan 07 summary):** build all libs per Dockerfile; copy generated Prisma client; Kong directory-mount; identity-admin view-realm; password via reset-password; disable VERIFY_PROFILE (KC24 name requirement); smoke email '+'; OTel SDK wired.
+
+### Pending host setup for REAL integrations (work in dev-stub today)
+- `KEYCLOAK_ADMIN_CLIENT_SECRET` (prod), `MSG91_*` (real OTP SMS), `GEOCODING_API_KEY` (real lat/lon), Google IdP client id/secret. token-exchange impersonation perm if `/auth/otp/verify` or `/auth/guest` 403 on host.
 
 ## Phase 1 Execution Status (build-now / verify-on-host)
 | Plan | Status | Local verification |
@@ -96,10 +100,11 @@ Kong → Keycloak JWT → service → Postgres transactional outbox → Debezium
 Money correctness · oversell · SAGA partial failure · reconciliation · exchange integrity · cross-tenant leakage · Razorpay async + COD recon · GST compliance · campaign-spike resilience · scope discipline.
 
 ## Next Action
-**`/gsd-plan-phase 2`** — Identity, Users & Access Control. Phase 2 services inherit the now-proven reference template (outbox/CDC/JWT/observability/Dockerfile/deploy).
+**`/gsd-plan-phase 3`** — Store Onboarding, Catalog & Admin Governance. Services inherit the proven template + @livora/auth (RBAC/ABAC, incl. @StoreScope ready for store-staff). KYC refs (Phase 2) gate store onboarding.
 
 ## Changelog
 - 2026-06-16: Project initialized — context, research, requirements, roadmap, state created.
 - 2026-06-16: Phase 1 re-scoped (Docker/Ubuntu, defer K8s/DevSecOps) and planned (5 plans).
 - 2026-06-16: Phase 1 executed build-only — monorepo+libs, compose infra, reference service (outbox/Kafka/JWT), observability, ubuntu deploy scripts. All local checks green.
 - 2026-06-16: Phase 1 VERIFIED ON HOST — deployed to Ubuntu via Docker Compose; ~10 runtime/config fixes; full transactional spine proven end-to-end. Checkpoint closed. Phase 1 DONE.
+- 2026-06-17: Phase 2 (Identity, Users & Access) built (7 plans) + VERIFIED ON HOST — @livora/auth (RBAC/ABAC), identity-service (register/OTP/token-exchange/guest), user-service (profile/addresses/KYC/prefs), inter-service UserRegistered event. ~8 host bring-up fixes. Phase 2 DONE.
