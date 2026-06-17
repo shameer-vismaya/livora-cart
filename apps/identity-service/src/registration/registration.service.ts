@@ -26,7 +26,9 @@ export class RegistrationService {
       password: dto.password,
       firstName: dto.firstName,
       lastName: dto.lastName,
-      emailVerified: false,
+      // Dev: mark verified so direct-grant login works immediately. PROD TODO:
+      // send a real verification email and flip this to false.
+      emailVerified: true,
     });
     await this.kc.assignRealmRole(keycloakId, this.defaultRole);
 

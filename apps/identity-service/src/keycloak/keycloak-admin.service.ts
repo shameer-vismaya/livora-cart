@@ -87,6 +87,9 @@ export class KeycloakAdminService {
       firstName: input.firstName,
       lastName: input.lastName,
       emailVerified: input.emailVerified ?? false,
+      // No pending required actions — otherwise direct-grant login fails with
+      // "Account is not fully set up".
+      requiredActions: [],
       attributes: input.phone ? { phone: [input.phone] } : undefined,
     };
     if (input.password) {
