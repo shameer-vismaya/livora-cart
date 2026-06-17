@@ -237,7 +237,10 @@ services:
       - '${KONG_PROXY_PORT:-8000}:8000'
       - '${KONG_ADMIN_PORT:-8001}:8001'
     volumes:
-      - ./infra/kong/kong.yml:/kong/kong.yml:ro
+      # Mount the DIRECTORY (not the single file): a single-file bind mount pins
+      # the original inode, so git-pull file replacements aren't seen by the
+      # container. Directory mount reflects updates; `kong reload` then works.
+      - ./infra/kong:/kong:ro
     networks: [livora-net]
     healthcheck:
       test: ['CMD', 'kong', 'health']
