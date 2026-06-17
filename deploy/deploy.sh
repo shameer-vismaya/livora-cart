@@ -59,6 +59,12 @@ docker compose "${COMPOSE_FILES[@]}" --env-file "$ENV_FILE" up -d
 log "Waiting for Postgres + Connect to be ready..."
 sleep 10
 
+# Kong is DB-less: it only reads kong.yml at start. `up -d` won't restart it when
+# only the mounted file changed, so reload to pick up new routes (identity, users).
+log "Reloading Kong declarative config..."
+docker compose "${COMPOSE_FILES[@]}" --env-file "$ENV_FILE" \
+  exec -T kong kong reload >/dev/null 2>&1 && log "kong reloaded" || log "WARN: kong reload failed"
+
 # Services with their own database (service:db). db push each (DB-per-service).
 DB_SERVICES=( "platform-reference:${POSTGRES_DB:-livora}" "identity-service:identity" "user-service:users" )
 # Databases that hold outbox tables (need the CDC publication).
