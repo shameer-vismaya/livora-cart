@@ -1,5 +1,8 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { randomUUID } from 'node:crypto';
+import { makeDomainEvent } from '@livora/contracts';
 import { PrismaService } from '../prisma/prisma.service';
+import { OutboxService } from '../outbox/outbox.service';
 
 export interface CreateProductInput {
   title: string;
@@ -15,7 +18,18 @@ const ALLOWED_GST = new Set([0, 5, 12, 18, 28]);
 
 @Injectable()
 export class ProductService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly outbox: OutboxService,
+  ) {}
+
+  async addImage(storeId: string, productId: string, url: string) {
+    const product = await this.get(storeId, productId);
+    return this.prisma.product.update({
+      where: { id: productId },
+      data: { images: { set: [...product.images, url] } },
+    });
+  }
 
   private assertGst(rate?: number): void {
     if (rate != null && !ALLOWED_GST.has(rate)) {

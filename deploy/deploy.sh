@@ -99,6 +99,14 @@ for db in "${OUTBOX_DBS[@]}"; do
     >/dev/null 2>&1 && log "publication ready ($db)" || log "WARN: publication failed ($db)"
 done
 
+log "Ensuring object-storage bucket (livora-catalog)..."
+# Create the catalog bucket in MinIO via a one-shot mc container on the network.
+docker run --rm --network livora_livora-net minio/mc:latest sh -c "
+  mc alias set m http://minio:9000 '${MINIO_ROOT_USER:-livora}' '${MINIO_ROOT_PASSWORD:-livora_dev_pw}' >/dev/null 2>&1 &&
+  mc mb -p m/${S3_BUCKET:-livora-catalog} >/dev/null 2>&1;
+  mc anonymous set download m/${S3_BUCKET:-livora-catalog} >/dev/null 2>&1 || true
+" >/dev/null 2>&1 && log "bucket ready" || log "WARN: bucket ensure failed (create manually in MinIO)."
+
 log "Registering Debezium connectors..."
 # Register every infra/debezium/*-connector.json from inside the network (Connect
 # port is not host-published in prod). envsubst fills creds; python extracts config.

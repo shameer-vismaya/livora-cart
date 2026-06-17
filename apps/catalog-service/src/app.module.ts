@@ -10,6 +10,10 @@ import { BrandController } from './brand/brand.controller';
 import { BrandService } from './brand/brand.service';
 import { ProductController } from './product/product.controller';
 import { ProductService } from './product/product.service';
+import { MediaController } from './media/media.controller';
+import { S3Service } from './media/s3.service';
+import { ProductModerationController } from './admin/product-moderation.controller';
+import { ProductModerationService } from './admin/product-moderation.service';
 
 @Module({
   imports: [AuthModule],
@@ -19,7 +23,17 @@ import { ProductService } from './product/product.service';
     CategoryController,
     BrandController,
     ProductController,
+    MediaController,
+    ProductModerationController,
   ],
-  providers: [PrismaService, OutboxService, CategoryService, BrandService, ProductService],
+  providers: [
+    PrismaService,
+    OutboxService,
+    CategoryService,
+    BrandService,
+    ProductService,
+    S3Service,
+    ProductModerationService,
+  ],
 })
 export class AppModule {}
