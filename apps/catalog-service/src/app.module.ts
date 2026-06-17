@@ -8,10 +8,18 @@ import { CategoryController } from './category/category.controller';
 import { CategoryService } from './category/category.service';
 import { BrandController } from './brand/brand.controller';
 import { BrandService } from './brand/brand.service';
+import { ProductController } from './product/product.controller';
+import { ProductService } from './product/product.service';
 
 @Module({
   imports: [AuthModule],
-  controllers: [HealthController, MetricsController, CategoryController, BrandController],
-  providers: [PrismaService, OutboxService, CategoryService, BrandService],
+  controllers: [
+    HealthController,
+    MetricsController,
+    CategoryController,
+    BrandController,
+    ProductController,
+  ],
+  providers: [PrismaService, OutboxService, CategoryService, BrandService, ProductService],
 })
 export class AppModule {}
