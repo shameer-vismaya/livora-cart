@@ -46,24 +46,24 @@ CAT_ID=$(printf '%s' "$CAT" | jget id)
 [ -n "$CAT_ID" ] && pass "category created" || fail "category: $CAT"
 
 # 5. owner creates a product in their store
-PROD=$(curl -s -X POST "$KONG/stores/$STORE_ID/products" -H "Authorization: Bearer $OWNER" \
+PROD=$(curl -s -X POST "$KONG/catalog/stores/$STORE_ID/products" -H "Authorization: Bearer $OWNER" \
   -H 'Content-Type: application/json' -d "{\"title\":\"Smoke Product\",\"categoryId\":\"$CAT_ID\",\"gstRatePct\":18}")
 PROD_ID=$(printf '%s' "$PROD" | jget id)
 [ -n "$PROD_ID" ] && pass "product created" || fail "product: $PROD"
 
 # 6. presign a media upload
-pcode=$(curl -s -o /dev/null -w '%{http_code}' -X POST "$KONG/stores/$STORE_ID/products/$PROD_ID/media/presign" \
+pcode=$(curl -s -o /dev/null -w '%{http_code}' -X POST "$KONG/catalog/stores/$STORE_ID/products/$PROD_ID/media/presign" \
   -H "Authorization: Bearer $OWNER" -H 'Content-Type: application/json' -d '{"contentType":"image/jpeg"}')
 [ "$pcode" = "201" ] || [ "$pcode" = "200" ] && pass "media presign" || fail "presign got $pcode"
 
 # 7. submit + admin publish
-curl -s -o /dev/null -X POST "$KONG/stores/$STORE_ID/products/$PROD_ID/submit" -H "Authorization: Bearer $OWNER"
-mcode=$(curl -s -o /dev/null -w '%{http_code}' -X POST "$KONG/admin/products/$PROD_ID/approve" -H "Authorization: Bearer $ADMIN")
+curl -s -o /dev/null -X POST "$KONG/catalog/stores/$STORE_ID/products/$PROD_ID/submit" -H "Authorization: Bearer $OWNER"
+mcode=$(curl -s -o /dev/null -w '%{http_code}' -X POST "$KONG/catalog/admin/products/$PROD_ID/approve" -H "Authorization: Bearer $ADMIN")
 [ "$mcode" = "201" ] || [ "$mcode" = "200" ] && pass "product published" || fail "publish got $mcode"
 
 # 8. tenant isolation: another owner cannot read store A's products
 OWNER2=$(login teststoreowner2 owner_pw)
-icode=$(curl -s -o /dev/null -w '%{http_code}' "$KONG/stores/$STORE_ID/products" -H "Authorization: Bearer $OWNER2")
+icode=$(curl -s -o /dev/null -w '%{http_code}' "$KONG/catalog/stores/$STORE_ID/products" -H "Authorization: Bearer $OWNER2")
 [ "$icode" = "403" ] && pass "tenant isolation (owner2 -> 403)" || fail "isolation expected 403 got $icode"
 
 # 9. ProductPublished on the catalog topic

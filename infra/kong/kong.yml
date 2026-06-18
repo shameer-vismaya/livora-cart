@@ -35,10 +35,14 @@ services:
   - name: store-service
     url: http://store-service:3000
     routes:
+      # No strip: store-service controllers are @Controller('stores') /
+      # @Controller('admin/stores'), so they need the full path. (Catalog's
+      # product endpoints live under /catalog/stores/... — no collision.)
       - name: stores
         paths:
           - /stores
-        strip_path: true
+          - /admin/stores
+        strip_path: false
 
   - name: catalog-service
     url: http://catalog-service:3000
