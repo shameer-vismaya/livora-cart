@@ -146,15 +146,21 @@ export class KeycloakAdminService {
     const headers = await this.authHeaders();
     const getRes = await fetch(`${this.base()}/users/${userId}`, { headers });
     if (!getRes.ok) throw new Error(`Keycloak get-user failed: ${getRes.status}`);
-    const user = (await getRes.json()) as { attributes?: Record<string, string[]> };
-    const attrs = user.attributes ?? {};
+    const user = (await getRes.json()) as Record<string, unknown> & {
+      attributes?: Record<string, string[]>;
+    };
+    const attrs = { ...(user.attributes ?? {}) };
     const stores = new Set(attrs['stores'] ?? []);
     stores.add(storeId);
     attrs['stores'] = [...stores];
+    // PUT the FULL user representation (KC24 declarative profile rejects partial
+    // updates that omit required fields like username/email). Strip read-only fields.
+    const { access, ...rest } = user;
+    void access;
     const putRes = await fetch(`${this.base()}/users/${userId}`, {
       method: 'PUT',
       headers,
-      body: JSON.stringify({ attributes: attrs }),
+      body: JSON.stringify({ ...rest, attributes: attrs }),
     });
     if (!putRes.ok) {
       throw new Error(`Keycloak set-attribute failed: ${putRes.status} ${await putRes.text()}`);
