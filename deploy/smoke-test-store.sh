@@ -36,8 +36,18 @@ acode=$(curl -s -o /dev/null -w '%{http_code}' -X POST "$KONG/admin/stores/$STOR
 # 3. owner RE-LOGIN to pick up the new 'stores' claim
 sleep 1
 OWNER=$(login teststoreowner owner_pw)
-echo "$OWNER" | cut -d. -f2 | tr '_-' '/+' | base64 -d 2>/dev/null | grep -q "$STORE_ID" \
-  && pass "owner token carries stores claim" || fail "stores claim missing from owner token"
+# Decode the JWT payload with proper base64url padding (naive base64 -d fails).
+if printf '%s' "$OWNER" | python3 -c "
+import sys, base64, json
+p = sys.stdin.read().strip().split('.')[1]
+p += '=' * (-len(p) % 4)
+claims = json.loads(base64.urlsafe_b64decode(p))
+sys.exit(0 if '$STORE_ID' in (claims.get('stores') or []) else 1)
+"; then
+  pass "owner token carries stores claim"
+else
+  fail "stores claim missing from owner token"
+fi
 
 # 4. admin creates a category
 CAT=$(curl -s -X POST "$KONG/catalog/categories" -H "Authorization: Bearer $ADMIN" \
