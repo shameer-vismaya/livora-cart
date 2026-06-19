@@ -21,11 +21,26 @@
   ],
   "roles": {
     "realm": [
-      { "name": "customer", "description": "Marketplace customer" },
-      { "name": "store_owner", "description": "Store owner" },
-      { "name": "store_staff", "description": "Store staff (cashier/inventory/manager)" },
-      { "name": "admin", "description": "Platform administrator" },
-      { "name": "driver", "description": "Delivery driver" }
+      {
+        "name": "customer",
+        "description": "Marketplace customer"
+      },
+      {
+        "name": "store_owner",
+        "description": "Store owner"
+      },
+      {
+        "name": "store_staff",
+        "description": "Store staff (cashier/inventory/manager)"
+      },
+      {
+        "name": "admin",
+        "description": "Platform administrator"
+      },
+      {
+        "name": "driver",
+        "description": "Delivery driver"
+      }
     ]
   },
   "clients": [
@@ -36,8 +51,12 @@
       "publicClient": true,
       "standardFlowEnabled": true,
       "directAccessGrantsEnabled": true,
-      "redirectUris": ["*"],
-      "webOrigins": ["*"],
+      "redirectUris": [
+        "*"
+      ],
+      "webOrigins": [
+        "*"
+      ],
       "protocol": "openid-connect",
       "protocolMappers": [
         {
@@ -63,8 +82,12 @@
       "publicClient": true,
       "standardFlowEnabled": true,
       "directAccessGrantsEnabled": true,
-      "redirectUris": ["*"],
-      "webOrigins": ["*"],
+      "redirectUris": [
+        "*"
+      ],
+      "webOrigins": [
+        "*"
+      ],
       "protocol": "openid-connect",
       "protocolMappers": [
         {
@@ -90,8 +113,12 @@
       "publicClient": true,
       "standardFlowEnabled": true,
       "directAccessGrantsEnabled": true,
-      "redirectUris": ["*"],
-      "webOrigins": ["*"],
+      "redirectUris": [
+        "*"
+      ],
+      "webOrigins": [
+        "*"
+      ],
       "protocol": "openid-connect"
     },
     {
@@ -126,7 +153,12 @@
       "enabled": true,
       "serviceAccountClientId": "identity-admin",
       "clientRoles": {
-        "realm-management": ["manage-users", "view-users", "query-users", "view-realm"]
+        "realm-management": [
+          "manage-users",
+          "view-users",
+          "query-users",
+          "view-realm"
+        ]
       }
     },
     {
@@ -137,9 +169,15 @@
       "firstName": "Test",
       "lastName": "Customer",
       "credentials": [
-        { "type": "password", "value": "test_pw", "temporary": false }
+        {
+          "type": "password",
+          "value": "test_pw",
+          "temporary": false
+        }
       ],
-      "realmRoles": ["customer"]
+      "realmRoles": [
+        "customer"
+      ]
     },
     {
       "username": "testadmin",
@@ -149,9 +187,15 @@
       "firstName": "Test",
       "lastName": "Admin",
       "credentials": [
-        { "type": "password", "value": "admin_pw", "temporary": false }
+        {
+          "type": "password",
+          "value": "admin_pw",
+          "temporary": false
+        }
       ],
-      "realmRoles": ["admin"]
+      "realmRoles": [
+        "admin"
+      ]
     },
     {
       "username": "teststoreowner",
@@ -161,9 +205,15 @@
       "firstName": "Test",
       "lastName": "Owner",
       "credentials": [
-        { "type": "password", "value": "owner_pw", "temporary": false }
+        {
+          "type": "password",
+          "value": "owner_pw",
+          "temporary": false
+        }
       ],
-      "realmRoles": ["store_owner"]
+      "realmRoles": [
+        "store_owner"
+      ]
     },
     {
       "username": "teststoreowner2",
@@ -173,9 +223,29 @@
       "firstName": "Test",
       "lastName": "Owner2",
       "credentials": [
-        { "type": "password", "value": "owner_pw", "temporary": false }
+        {
+          "type": "password",
+          "value": "owner_pw",
+          "temporary": false
+        }
       ],
-      "realmRoles": ["store_owner"]
+      "realmRoles": [
+        "store_owner"
+      ]
     }
-  ]
+  ],
+  "components": {
+    "org.keycloak.userprofile.UserProfileProvider": [
+      {
+        "name": "Declarative User Profile",
+        "providerId": "declarative-user-profile",
+        "subComponents": {},
+        "config": {
+          "kc.user.profile.config": [
+            "{\"unmanagedAttributePolicy\":\"ENABLED\",\"attributes\":[{\"name\":\"username\",\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]}},{\"name\":\"email\",\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]}},{\"name\":\"firstName\",\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]}},{\"name\":\"lastName\",\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]}}]}"
+          ]
+        }
+      }
+    ]
+  }
 }

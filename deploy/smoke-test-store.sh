@@ -41,7 +41,7 @@ echo "$OWNER" | cut -d. -f2 | tr '_-' '/+' | base64 -d 2>/dev/null | grep -q "$S
 
 # 4. admin creates a category
 CAT=$(curl -s -X POST "$KONG/catalog/categories" -H "Authorization: Bearer $ADMIN" \
-  -H 'Content-Type: application/json' -d '{"name":"Smoke Cat"}')
+  -H 'Content-Type: application/json' -d "{\"name\":\"Smoke Cat $(date +%s 2>/dev/null || echo x)$RANDOM\"}")
 CAT_ID=$(printf '%s' "$CAT" | jget id)
 [ -n "$CAT_ID" ] && pass "category created" || fail "category: $CAT"
 
